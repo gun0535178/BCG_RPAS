@@ -1,0 +1,482 @@
+@{
+    ViewData["Title"] = $"รายละเอียดคำขอค่าเช่า #{ViewBag.RequestId}";
+    int reqId = ViewBag.RequestId ?? 0;
+}
+
+<div class="container py-3" style="max-width: 960px;">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+        <div>
+            <a asp-action="Index" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                กลับไปยังรายการคำขอ
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <h2 class="fw-bold mb-0" style="color: #0F5132;">คำขอค่าเช่า #@reqId</h2>
+                <span id="badgeRequestStatus" class="badge bg-secondary fs-6">กำลังโหลด...</span>
+                <span id="badgeSyncStatus" class="badge bg-light text-muted border">กำลังโหลด...</span>
+            </div>
+            <p class="text-muted small mt-1 mb-0" id="subHeaderText"></p>
+        </div>
+        <div id="topActionButtons" class="d-flex gap-2">
+            <!-- Dynamic Actions (Edit, Submit, Cancel) -->
+        </div>
+    </div>
+
+    <!-- Alert Notification -->
+    <div id="detailAlert" class="alert d-none rounded-3 shadow-sm mb-4"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingBox" class="text-center py-5">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="text-muted mt-2">กำลังโหลดรายละเอียดคำขอ...</p>
+    </div>
+
+    <!-- Content Area -->
+    <div id="detailContent" class="d-none">
+
+        <!-- Cancellation Notice (If Cancelled) -->
+        <div id="cancelledNoticeBox" class="alert alert-danger d-none rounded-3 mb-4">
+            <h6 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                คำขอนี้ถูกยกเลิกแล้ว (CANCELLED)
+            </h6>
+            <p class="mb-0 small" id="cancellationReasonText"></p>
+        </div>
+
+        <!-- 1. ข้อมูลหลักและยอดเงิน -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom p-3">
+                <h5 class="fw-bold mb-0 text-dark">ข้อมูลสัญญาและสรุปยอดเงิน</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6 border-end-md">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted" style="width: 140px;">เลขที่สัญญา:</td>
+                                    <td class="fw-bold text-dark" id="txtContractNumber">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">ผู้ให้เช่า (Vendor):</td>
+                                    <td class="fw-semibold text-dark" id="txtVendorName">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">ประเภทค่าเช่า:</td>
+                                    <td id="txtRentalTypeName">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">ศูนย์ต้นทุน:</td>
+                                    <td id="txtCostCenter">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">งวดเวลาที่เช่า:</td>
+                                    <td class="fw-semibold text-primary" id="txtPeriodDates">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3" style="background-color: #F8FAFC;">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">ยอดเงินก่อน VAT:</span>
+                                <span class="fw-semibold" id="txtAmount">-</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">ภาษีมูลค่าเพิ่ม (<span id="txtVatRate">7</span>%):</span>
+                                <span class="fw-semibold" id="txtVatAmount">-</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-dark">ยอดรวมสุทธิ:</span>
+                                <span class="fw-bold fs-4 text-success" id="txtTotalAmount">-</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <small class="text-muted d-block fw-semibold mb-1">หมายเหตุ:</small>
+                            <div class="small p-2 bg-light rounded text-secondary" id="txtNotes">ไม่มีหมายเหตุเพิ่มเติม</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. เอกสารแนบ -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom p-3">
+                <h5 class="fw-bold mb-0 text-dark">เอกสารแนบ (Attachments)</h5>
+            </div>
+            <div class="card-body p-4">
+                <div id="attachmentsListContainer" class="d-flex flex-wrap gap-2">
+                    <span class="text-muted small">ไม่มีเอกสารแนบ</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. สายการอนุมัติ (Approval Steps Timeline) -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom p-3">
+                <h5 class="fw-bold mb-0 text-dark">สายการอนุมัติ (Approval Workflow)</h5>
+            </div>
+            <div class="card-body p-4">
+                <div id="stepsContainer" class="row g-3">
+                    <!-- Dynamic Steps -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ประวัติการทำรายการ (Timeline & Logs) -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom p-3">
+                <h5 class="fw-bold mb-0 text-dark">ประวัติการดำเนินการ (Audit Timeline)</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-3" style="width: 170px;">วัน-เวลา</th>
+                            <th style="width: 150px;">การกระทำ</th>
+                            <th style="width: 150px;">ผู้ดำเนินการ</th>
+                            <th>รายละเอียด / เหตุผล</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted">ไม่มีข้อมูลประวัติ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal: Cancel Request Confirmation -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">ยืนยันการยกเลิกคำขอ #@reqId</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="text-muted small mb-3">คำขอนี้จะถูกเปลี่ยนสถานะเป็น <span class="badge bg-danger">CANCELLED</span> และไม่สามารถนำกลับมาดำเนินการต่อได้</p>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="modalCancelReason">เหตุผลการยกเลิก <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="modalCancelReason" rows="3" placeholder="ระบุเหตุผลในการขอยกเลิกคำขอ..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn btn-danger px-4" id="btnConfirmCancelModal">ยืนยันยกเลิก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const reqId = @reqId;
+            let currentData = null;
+
+            loadDetail();
+
+            function loadDetail() {
+                $('#loadingBox').removeClass('d-none');
+                $('#detailContent').addClass('d-none');
+
+                $.ajax({
+                    url: `@Url.Action("GetDetailJson", "RentalRequests")/${reqId}`,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        currentData = data;
+                        renderDetails(data);
+                        $('#loadingBox').addClass('d-none');
+                        $('#detailContent').removeClass('d-none');
+                    },
+                    error: function (xhr) {
+                        $('#loadingBox').html(`
+                            <div class="text-danger py-5">
+                                <h5>ไม่สามารถโหลดข้อมูลคำขอได้</h5>
+                                <p class="text-muted small">คำขออาจถูกลบ หรือคุณไม่มีสิทธิ์เข้าถึงข้อมูล (${xhr.status})</p>
+                            </div>
+                        `);
+                    }
+                });
+            }
+
+            function renderDetails(d) {
+                // Header & Badges
+                $('#badgeRequestStatus').html(getStatusBadge(d.statusId, d.statusCode));
+                $('#badgeSyncStatus').html(getSyncBadge(d.syncStatus));
+                $('#subHeaderText').text(`ผู้ขอ: ${d.requesterName || '-'} | สร้างเมื่อ: ${formatDateTime(d.createDate)} | Revision: #${d.currentRevision || 0}`);
+
+                // Cancelled notice
+                if (d.statusId === 7) {
+                    $('#cancelledNoticeBox').removeClass('d-none');
+                    $('#cancellationReasonText').text(d.cancellationReason || 'ไม่มีการระบุเหตุผล');
+                } else {
+                    $('#cancelledNoticeBox').addClass('d-none');
+                }
+
+                // Contract & Financials
+                $('#txtContractNumber').text(d.contractNumber || `สัญญา #${d.contractId}`);
+                $('#txtVendorName').text(d.vendorName || '-');
+                $('#txtRentalTypeName').text(d.rentalTypeName || '-');
+                $('#txtCostCenter').text(d.costCenterCode ? `[${d.costCenterCode}] ${d.costCenterName}` : '-');
+
+                const period = (d.periodStartDate && d.periodEndDate)
+                    ? `${formatDate(d.periodStartDate)} ถึง ${formatDate(d.periodEndDate)}`
+                    : '-';
+                $('#txtPeriodDates').text(period);
+
+                $('#txtAmount').text(formatCurrency(d.amount));
+                $('#txtVatRate').text(d.vatRate != null ? d.vatRate : '7.00');
+                $('#txtVatAmount').text(formatCurrency(d.vatAmount));
+                $('#txtTotalAmount').text(formatCurrency(d.totalAmount));
+                $('#txtNotes').text(d.notes || 'ไม่มีหมายเหตุเพิ่มเติม');
+
+                // Attachments
+                const files = d.attachmentFileNames || [];
+                if (files.length === 0) {
+                    $('#attachmentsListContainer').html('<span class="text-muted small">ไม่มีเอกสารแนบ</span>');
+                } else {
+                    let filesHtml = '';
+                    files.forEach(f => {
+                        filesHtml += `
+                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                ${f}
+                            </span>
+                        `;
+                    });
+                    $('#attachmentsListContainer').html(filesHtml);
+                }
+
+                // Approval Steps
+                const steps = d.approvalSteps || [];
+                if (steps.length === 0) {
+                    $('#stepsContainer').html('<div class="col-12 text-muted small">ยังไม่มีการผูกสายการอนุมัติ (จะแสดงเมื่อส่งอนุมัติ)</div>');
+                } else {
+                    let stepsHtml = '';
+                    steps.forEach(s => {
+                        const stepBadge = getStepBadge(s.status);
+                        const stepDate = s.actionDate ? formatDateTime(s.actionDate) : '-';
+                        const reasonHtml = s.reason ? `<div class="mt-1 small text-danger"><strong>เหตุผล:</strong> ${s.reason}</div>` : '';
+
+                        stepsHtml += `
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 border bg-light h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-dark text-white">ขั้นที่ ${s.stepNumber}: ${s.roleName || s.roleCode}</span>
+                                        ${stepBadge}
+                                    </div>
+                                    <div class="fw-bold text-dark">${s.approverName || 'ผู้อนุมัติ'}</div>
+                                    <div class="small text-muted">วันเวลาดำเนินการ: ${stepDate}</div>
+                                    ${reasonHtml}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $('#stepsContainer').html(stepsHtml);
+                }
+
+                // Audit Logs
+                const logs = d.logs || [];
+                if (logs.length === 0) {
+                    $('#logsTableBody').html('<tr><td colspan="4" class="text-center py-3 text-muted">ไม่มีข้อมูลประวัติ</td></tr>');
+                } else {
+                    let logsHtml = '';
+                    logs.forEach(l => {
+                        logsHtml += `
+                            <tr>
+                                <td class="ps-3 text-muted small">${formatDateTime(l.actionDate)}</td>
+                                <td><span class="badge bg-secondary-subtle text-secondary border">${l.action}</span></td>
+                                <td class="fw-semibold text-dark">${l.actorName || '-'}</td>
+                                <td>
+                                    <div>${l.details || '-'}</div>
+                                    ${l.reason ? `<small class="text-danger">เหตุผล: ${l.reason}</small>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $('#logsTableBody').html(logsHtml);
+                }
+
+                // Render Action Buttons
+                renderActionButtons(d);
+            }
+
+            function renderActionButtons(d) {
+                let btns = '';
+
+                // Can edit if DRAFT (1) or REVISION_REQUIRED (6)
+                if (d.statusId === 1 || d.statusId === 6) {
+                    btns += `
+                        <a href="@Url.Action("Edit", "RentalRequests")/${d.id}" class="btn btn-outline-warning btn-sm px-3 fw-semibold">
+                            แก้ไขคำขอ
+                        </a>
+                        <button type="button" id="btnSubmitFromDetail" class="btn btn-success btn-sm px-3 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #16A34A 0%, #0F5132 100%); border: none;">
+                            ส่งขออนุมัติ
+                        </button>
+                    `;
+                }
+
+                // Can cancel if before APPROVED (1, 2, 3, 6)
+                if (d.statusId === 1 || d.statusId === 2 || d.statusId === 3 || d.statusId === 6) {
+                    btns += `
+                        <button type="button" id="btnCancelFromDetail" class="btn btn-outline-danger btn-sm px-3 fw-semibold ms-1">
+                            ยกเลิกคำขอ
+                        </button>
+                    `;
+                }
+
+                $('#topActionButtons').html(btns);
+            }
+
+            // Submit Button Event
+            $(document).on('click', '#btnSubmitFromDetail', function () {
+                if (!confirm('ยืนยันการส่งคำขอค่าเช่านี้เข้าสู่กระบวนการอนุมัติ?')) {
+                    return;
+                }
+
+                const $btn = $(this);
+                $btn.prop('disabled', true).text('กำลังส่งอนุมัติ...');
+
+                $.ajax({
+                    url: `@Url.Action("Submit", "RentalRequests")/${reqId}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        expectedConcurrencyVersion: currentData.concurrencyVersion
+                    }),
+                    success: function () {
+                        showAlert('success', 'ส่งคำขออนุมัติเรียบร้อยแล้ว!');
+                        loadDetail();
+                    },
+                    error: function (xhr) {
+                        const err = xhr.responseJSON && xhr.responseJSON.detail
+                            ? xhr.responseJSON.detail
+                            : 'เกิดข้อผิดพลาดในการส่งอนุมัติ';
+                        showAlert('danger', err);
+                        $btn.prop('disabled', false).text('ส่งขออนุมัติ');
+                    }
+                });
+            });
+
+            // Cancel Button Event
+            $(document).on('click', '#btnCancelFromDetail', function () {
+                $('#modalCancelReason').val('');
+                const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+                modal.show();
+            });
+
+            $('#btnConfirmCancelModal').on('click', function () {
+                const reason = $.trim($('#modalCancelReason').val());
+                if (!reason) {
+                    alert('กรุณาระบุเหตุผลการยกเลิกคำขอ');
+                    return;
+                }
+
+                const $btn = $(this);
+                $btn.prop('disabled', true).text('กำลังยกเลิก...');
+
+                $.ajax({
+                    url: `@Url.Action("Cancel", "RentalRequests")/${reqId}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        reason: reason,
+                        expectedConcurrencyVersion: currentData.concurrencyVersion
+                    }),
+                    success: function () {
+                        bootstrap.Modal.getInstance(document.getElementById('cancelModal')).hide();
+                        showAlert('success', 'ยกเลิกคำขอสำเร็จ');
+                        loadDetail();
+                    },
+                    error: function (xhr) {
+                        const err = xhr.responseJSON && xhr.responseJSON.detail
+                            ? xhr.responseJSON.detail
+                            : 'เกิดข้อผิดพลาดในการยกเลิก';
+                        alert(err);
+                        $btn.prop('disabled', false).text('ยืนยันยกเลิก');
+                    }
+                });
+            });
+
+            // Format Helpers
+            function getStatusBadge(id, code) {
+                switch (id) {
+                    case 1: return '<span class="badge bg-secondary">DRAFT (ฉบับร่าง)</span>';
+                    case 2: return '<span class="badge bg-warning text-dark">รอผู้จัดการอนุมัติ (PENDING_MANAGER)</span>';
+                    case 3: return '<span class="badge bg-info text-dark">รอผู้บริหารอนุมัติ (PENDING_EXECUTIVE)</span>';
+                    case 4: return '<span class="badge bg-success">APPROVED (อนุมัติแล้ว)</span>';
+                    case 5: return '<span class="badge bg-danger">REJECTED (ปฏิเสธ)</span>';
+                    case 6: return '<span class="badge bg-warning text-dark border">ส่งคืนให้แก้ไข (REVISION_REQUIRED)</span>';
+                    case 7: return '<span class="badge bg-light text-muted border">CANCELLED (ยกเลิก)</span>';
+                    default: return `<span class="badge bg-light text-dark">${code}</span>`;
+                }
+            }
+
+            function getStepBadge(status) {
+                switch (status) {
+                    case 'Approved': return '<span class="badge bg-success">อนุมัติแล้ว</span>';
+                    case 'Pending': return '<span class="badge bg-warning text-dark">รอดำเนินการ</span>';
+                    case 'Waiting': return '<span class="badge bg-secondary">รอคิว</span>';
+                    case 'Rejected': return '<span class="badge bg-danger">ปฏิเสธ</span>';
+                    case 'Returned': return '<span class="badge bg-warning text-dark">ส่งคืน</span>';
+                    case 'Cancelled': return '<span class="badge bg-light text-muted border">ยกเลิก</span>';
+                    case 'Superseded': return '<span class="badge bg-light text-muted">ยกเลิกตามรอบเก่า</span>';
+                    default: return `<span class="badge bg-light text-dark">${status}</span>`;
+                }
+            }
+
+            function getSyncBadge(status) {
+                switch (status) {
+                    case 'Succeeded': return '<span class="badge bg-success">ERP: ซิงค์สำเร็จ</span>';
+                    case 'Processing': return '<span class="badge bg-info text-dark">ERP: กำลังส่ง</span>';
+                    case 'RetryScheduled': return '<span class="badge bg-warning text-dark">ERP: รอส่งซ้ำ</span>';
+                    case 'Failed': return '<span class="badge bg-danger">ERP: ส่งไม่สำเร็จ</span>';
+                    default: return '<span class="badge bg-light text-muted border">ERP: รอดำเนินการ</span>';
+                }
+            }
+
+            function formatCurrency(val) {
+                if (val == null) return '-';
+                return Number(val).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ฿';
+            }
+
+            function formatDate(str) {
+                if (!str) return '-';
+                const d = new Date(str);
+                return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+            }
+
+            function formatDateTime(str) {
+                if (!str) return '-';
+                const d = new Date(str);
+                return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+
+            function showAlert(type, message) {
+                const $box = $('#detailAlert');
+                $box.removeClass('d-none alert-success alert-danger alert-warning')
+                    .addClass('alert-' + type)
+                    .html(message);
+                $('html, body').animate({ scrollTop: 0 }, 'fast');
+            }
+        });
+    </script>
+}

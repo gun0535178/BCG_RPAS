@@ -8,7 +8,7 @@ builder.Services.AddControllersWithViews();
 // Register HttpClient for API communication
 builder.Services.AddHttpClient("RPAS_API", client =>
 {
-    var baseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5074";
+    var baseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7050";
     client.BaseAddress = new Uri(baseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 });

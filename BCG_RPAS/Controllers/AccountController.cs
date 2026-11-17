@@ -62,7 +62,7 @@ namespace BCG_RPAS.Controllers
 
             try
             {
-                var apiBaseUrl = _configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5074";
+                var apiBaseUrl = _configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7050";
                 var client = _httpClientFactory.CreateClient("RPAS_API");
 
                 var loginPayload = new

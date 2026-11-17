@@ -1,0 +1,450 @@
+@{
+    ViewData["Title"] = "สร้างคำขอค่าเช่าใหม่";
+}
+
+<div class="container py-3" style="max-width: 900px;">
+    <!-- Breadcrumb & Title -->
+    <div class="mb-4">
+        <a asp-action="Index" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            กลับไปยังรายการคำขอ
+        </a>
+        <h2 class="fw-bold mb-1" style="color: #0F5132;">สร้างคำขอค่าเช่า (New Rental Request)</h2>
+        <p class="text-muted">กรอกรายละเอียดสัญญา ข้อมูลการเงิน และเอกสารอ้างอิงเพื่อขออนุมัติ</p>
+    </div>
+
+    <!-- Alert Notification Container -->
+    <div id="formAlert" class="alert d-none rounded-3 shadow-sm mb-4" role="alert"></div>
+
+    <form id="rentalRequestForm">
+        <!-- Card 1: สัญญาและข้อมูลผู้ให้เช่า -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom p-3">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success rounded-circle p-2">1</span>
+                    ข้อมูลสัญญาและศูนย์ต้นทุน
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="contractSelect">
+                            เลขที่สัญญา (Contract) <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="contractSelect" required>
+                            <option value="">-- กำลังโหลดรายการสัญญา... --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="costCenterSelect">
+                            ศูนย์ต้นทุน (Cost Center) <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="costCenterSelect" required>
+                            <option value="">-- กำลังโหลดศูนย์ต้นทุน... --</option>
+                        </select>
+                    </div>
+
+                    <!-- Auto-populated from contract -->
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">ผู้ให้เช่า (Vendor) <span class="badge bg-light text-secondary">ดึงจากสัญญา</span></label>
+                        <input type="text" class="form-control bg-light" id="vendorNameInput" placeholder="จะแสดงอัตโนมัติเมื่อเลือกสัญญา" readonly />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">ประเภทค่าเช่า (Rental Type) <span class="badge bg-light text-secondary">ดึงจากสัญญา</span></label>
+                        <input type="text" class="form-control bg-light" id="rentalTypeNameInput" placeholder="จะแสดงอัตโนมัติเมื่อเลือกสัญญา" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: ข้อมูลงวดและจำนวนเงิน -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom p-3">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success rounded-circle p-2">2</span>
+                    งวดเวลาและจำนวนเงิน
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="periodStartDate">
+                            วันเริ่มต้นงวด <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" id="periodStartDate" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="periodEndDate">
+                            วันสิ้นสุดงวด <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" class="form-control" id="periodEndDate" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="amountInput">
+                            ยอดเงินก่อน VAT (บาท) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" min="0.01" class="form-control" id="amountInput" placeholder="0.00" required />
+                            <span class="input-group-text bg-light">THB</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="vatRateInput">
+                            อัตรา VAT (%) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" min="0" max="100" class="form-control" id="vatRateInput" value="7.00" required />
+                            <span class="input-group-text bg-light">%</span>
+                        </div>
+                    </div>
+
+                    <!-- Calculated summary box -->
+                    <div class="col-12 mt-4">
+                        <div class="p-3 rounded-3" style="background-color: #F8FAFC; border: 1.5px dashed #CBD5E1;">
+                            <div class="row g-2 text-center text-md-start align-items-center">
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">ภาษีมูลค่าเพิ่ม (VAT Amount)</small>
+                                    <span class="fw-bold text-dark fs-5" id="vatAmountDisplay">0.00 ฿</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">ยอดรวมสุทธิ (Total Amount)</small>
+                                    <span class="fw-bold text-success fs-4" id="totalAmountDisplay">0.00 ฿</span>
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    <div id="approvalPolicyBadge" class="badge bg-secondary-subtle text-secondary p-2 rounded-3 text-wrap" style="font-size: 0.82rem; line-height: 1.4;">
+                                        กรุณาระบุยอดเงินเพื่อประเมินสายอนุมัติ
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: เอกสารแนบและหมายเหตุ -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom p-3">
+                <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success rounded-circle p-2">3</span>
+                    เอกสารแนบและหมายเหตุ
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">
+                        ชื่อไฟล์เอกสารแนบ (Attachment File Names) <span class="text-danger">*</span>
+                    </label>
+                    <p class="text-muted small mb-2">ระบุชื่อไฟล์เอกสาร เช่น ใบแจ้งหนี้ สำเนาสัญญา (อย่างน้อย 1 รายการเมื่อส่งอนุมัติ)</p>
+                    
+                    <div class="input-group mb-2">
+                        <input type="text" id="newAttachmentInput" class="form-control" placeholder="เช่น invoice_nov_2026.pdf หรือ rental_agreement.pdf" />
+                        <button type="button" id="btnAddAttachment" class="btn btn-outline-success px-3">
+                            + เพิ่มเอกสาร
+                        </button>
+                    </div>
+
+                    <!-- File list container -->
+                    <div id="attachmentsContainer" class="d-flex flex-wrap gap-2 pt-1">
+                        <span class="text-muted small italic" id="emptyAttachmentNote">ยังไม่มีเอกสารแนบ</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="form-label fw-semibold" for="notesInput">หมายเหตุเพิ่มเติม (Notes)</label>
+                    <textarea class="form-control" id="notesInput" rows="3" placeholder="ระบุรายละเอียดเพิ่มเติม หรือวัตถุประสงค์ในการขออนุมัติจ่ายค่าเช่า..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mb-5">
+            <a asp-action="Index" class="btn btn-light px-4 py-2 text-muted fw-semibold">
+                ยกเลิกและย้อนกลับ
+            </a>
+            <div class="d-flex gap-2">
+                <button type="button" id="btnSaveDraft" class="btn btn-outline-success px-4 py-2 fw-semibold">
+                    <span id="btnSaveDraftText">บันทึกร่าง (Save Draft)</span>
+                </button>
+                <button type="button" id="btnSubmitRequest" class="btn btn-success px-4 py-2 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #16A34A 0%, #0F5132 100%); border: none;">
+                    <span id="btnSubmitText">ส่งขออนุมัติ (Submit)</span>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let contractsList = [];
+            let attachmentsList = [];
+
+            // 1. Load Master Data
+            $.ajax({
+                url: '@Url.Action("GetMasters", "RentalRequests")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    if (res) {
+                        // Populate Contracts
+                        contractsList = res.contracts || [];
+                        let contractOptions = '<option value="">-- เลือกสัญญาเช่า --</option>';
+                        contractsList.forEach(c => {
+                            contractOptions += `<option value="${c.id}">${c.contractNumber} (${c.vendorName || '-'})</option>`;
+                        });
+                        $('#contractSelect').html(contractOptions);
+
+                        // Populate Cost Centers
+                        let ccOptions = '<option value="">-- เลือกศูนย์ต้นทุน --</option>';
+                        (res.costCenters || []).forEach(cc => {
+                            ccOptions += `<option value="${cc.id}">[${cc.costCenterCode}] ${cc.name}</option>`;
+                        });
+                        $('#costCenterSelect').html(ccOptions);
+                    }
+                },
+                error: function () {
+                    showAlert('danger', 'เกิดข้อผิดพลาดในการโหลดข้อมูลสัญญาและศูนย์ต้นทุน');
+                }
+            });
+
+            // 2. Contract Selection Change -> Auto Fill Vendor & Rental Type
+            $('#contractSelect').on('change', function () {
+                const selectedId = parseInt($(this).val());
+                const contract = contractsList.find(c => c.id === selectedId);
+
+                if (contract) {
+                    $('#vendorNameInput').val(contract.vendorName || '-');
+                    $('#rentalTypeNameInput').val(contract.rentalTypeName || '-');
+                } else {
+                    $('#vendorNameInput').val('');
+                    $('#rentalTypeNameInput').val('');
+                }
+            });
+
+            // 3. Live Financial & VAT Calculation
+            $('#amountInput, #vatRateInput').on('input', function () {
+                calculateFinancials();
+            });
+
+            function calculateFinancials() {
+                const amount = parseFloat($('#amountInput').val()) || 0;
+                const vatRate = parseFloat($('#vatRateInput').val()) || 0;
+
+                const vatAmount = Math.round((amount * vatRate / 100.0) * 100) / 100;
+                const totalAmount = amount + vatAmount;
+
+                $('#vatAmountDisplay').text(vatAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ฿');
+                $('#totalAmountDisplay').text(totalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ฿');
+
+                // Update Approval Policy Indicator
+                const $badge = $('#approvalPolicyBadge');
+                if (amount <= 0) {
+                    $badge.removeClass('bg-success-subtle text-success bg-info-subtle text-info')
+                          .addClass('bg-secondary-subtle text-secondary')
+                          .text('กรุณาระบุยอดเงินเพื่อประเมินสายอนุมัติ');
+                } else if (amount <= 50000) {
+                    $badge.removeClass('bg-secondary-subtle text-secondary bg-info-subtle text-info')
+                          .addClass('bg-success-subtle text-success')
+                          .html('✓ ยอด ≤ 50,000 ฿<br><strong>อนุมัติขั้นเดียวโดย ผู้จัดการ (Manager)</strong>');
+                } else {
+                    $badge.removeClass('bg-secondary-subtle text-secondary bg-success-subtle text-success')
+                          .addClass('bg-info-subtle text-info-emphasis')
+                          .html('✓ ยอด &gt; 50,000 ฿<br><strong>อนุมัติ 2 ขั้น (Manager + Executive)</strong>');
+                }
+            }
+
+            // 4. Attachments Tag Management
+            $('#btnAddAttachment').on('click', function () {
+                addAttachmentFromInput();
+            });
+
+            $('#newAttachmentInput').on('keypress', function (e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    addAttachmentFromInput();
+                }
+            });
+
+            function addAttachmentFromInput() {
+                const val = $.trim($('#newAttachmentInput').val());
+                if (!val) return;
+
+                if (attachmentsList.includes(val)) {
+                    alert('มีชื่อไฟล์นี้ในรายการแล้ว');
+                    return;
+                }
+
+                attachmentsList.push(val);
+                $('#newAttachmentInput').val('');
+                renderAttachments();
+            }
+
+            function renderAttachments() {
+                const $container = $('#attachmentsContainer');
+                if (attachmentsList.length === 0) {
+                    $container.html('<span class="text-muted small italic" id="emptyAttachmentNote">ยังไม่มีเอกสารแนบ</span>');
+                    return;
+                }
+
+                let html = '';
+                attachmentsList.forEach((file, idx) => {
+                    html += `
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            ${file}
+                            <button type="button" class="btn-close btn-close-sm" style="font-size: 0.65rem;" onclick="removeAttachment(${idx})"></button>
+                        </span>
+                    `;
+                });
+                $container.html(html);
+            }
+
+            window.removeAttachment = function (index) {
+                attachmentsList.splice(index, 1);
+                renderAttachments();
+            };
+
+            // 5. Save Draft Action
+            $('#btnSaveDraft').on('click', function () {
+                saveDraft(false);
+            });
+
+            // 6. Submit Action
+            $('#btnSubmitRequest').on('click', function () {
+                // Client-side quick checks before submitting
+                if (!$('#contractSelect').val()) {
+                    showAlert('danger', 'กรุณาเลือกเลขที่สัญญาก่อนส่งอนุมัติ');
+                    return;
+                }
+                if (!$('#costCenterSelect').val()) {
+                    showAlert('danger', 'กรุณาเลือกศูนย์ต้นทุนก่อนส่งอนุมัติ');
+                    return;
+                }
+                if (!$('#periodStartDate').val() || !$('#periodEndDate').val()) {
+                    showAlert('danger', 'กรุณาระบุวันเริ่มต้นและสิ้นสุดงวดค่าเช่า');
+                    return;
+                }
+                const amount = parseFloat($('#amountInput').val()) || 0;
+                if (amount <= 0) {
+                    showAlert('danger', 'ยอดเงินก่อน VAT ต้องมากกว่า 0');
+                    return;
+                }
+                if (attachmentsList.length === 0) {
+                    showAlert('danger', 'กรุณาระบุชื่อไฟล์เอกสารแนบอย่างน้อย 1 รายการก่อนส่งอนุมัติ');
+                    return;
+                }
+
+                if (!confirm('ยืนยันการส่งคำขอค่าเช่านี้เข้าสู่กระบวนการอนุมัติ?')) {
+                    return;
+                }
+
+                saveDraft(true); // Save draft first, then auto-submit!
+            });
+
+            function saveDraft(isSubmitAfter) {
+                const payload = {
+                    id: 0,
+                    contractId: $('#contractSelect').val() ? parseInt($('#contractSelect').val()) : null,
+                    costCenterId: $('#costCenterSelect').val() ? parseInt($('#costCenterSelect').val()) : null,
+                    periodStartDate: $('#periodStartDate').val() || null,
+                    periodEndDate: $('#periodEndDate').val() || null,
+                    amount: $('#amountInput').val() ? parseFloat($('#amountInput').val()) : null,
+                    vatRate: $('#vatRateInput').val() ? parseFloat($('#vatRateInput').val()) : null,
+                    notes: $.trim($('#notesInput').val()) || null,
+                    attachmentFileNames: attachmentsList
+                };
+
+                const $btnSave = $('#btnSaveDraft');
+                const $btnSubmit = $('#btnSubmitRequest');
+                $btnSave.prop('disabled', true);
+                $btnSubmit.prop('disabled', true);
+
+                if (isSubmitAfter) {
+                    $('#btnSubmitText').text('กำลังประมวลผลคำขอ...');
+                } else {
+                    $('#btnSaveDraftText').text('กำลังบันทึกร่าง...');
+                }
+
+                $.ajax({
+                    url: '@Url.Action("SaveDraft", "RentalRequests")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function (res) {
+                        const newId = res.id;
+                        const version = res.concurrencyVersion;
+
+                        if (isSubmitAfter) {
+                            // Proceed to Submit
+                            submitRequest(newId, version);
+                        } else {
+                            showAlert('success', 'บันทึกฉบับร่างเรียบร้อยแล้ว');
+                            setTimeout(function () {
+                                window.location.href = `@Url.Action("Details", "RentalRequests")/${newId}`;
+                            }, 800);
+                        }
+                    },
+                    error: function (xhr) {
+                        const err = xhr.responseJSON && xhr.responseJSON.detail
+                            ? xhr.responseJSON.detail
+                            : 'เกิดข้อผิดพลาดในการบันทึกร่าง';
+                        showAlert('danger', err);
+                        resetButtons();
+                    }
+                });
+            }
+
+            function submitRequest(requestId, version) {
+                $.ajax({
+                    url: `@Url.Action("Submit", "RentalRequests")/${requestId}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        expectedConcurrencyVersion: version,
+                        attachmentFileNames: attachmentsList
+                    }),
+                    success: function () {
+                        showAlert('success', 'ส่งคำขออนุมัติสำเร็จ! กำลังนำไปยังหน้ารายละเอียด...');
+                        setTimeout(function () {
+                            window.location.href = `@Url.Action("Details", "RentalRequests")/${requestId}`;
+                        }, 800);
+                    },
+                    error: function (xhr) {
+                        const err = xhr.responseJSON && xhr.responseJSON.detail
+                            ? xhr.responseJSON.detail
+                            : 'บันทึกร่างแล้ว แต่ส่งอนุมัติไม่สำเร็จ กรุณากดส่งอนุมัติอีกครั้งในหน้ารายละเอียด';
+                        showAlert('danger', err);
+                        resetButtons();
+                    }
+                });
+            }
+
+            function resetButtons() {
+                $('#btnSaveDraft').prop('disabled', false);
+                $('#btnSubmitRequest').prop('disabled', false);
+                $('#btnSaveDraftText').text('บันทึกร่าง (Save Draft)');
+                $('#btnSubmitText').text('ส่งขออนุมัติ (Submit)');
+            }
+
+            function showAlert(type, message) {
+                const $box = $('#formAlert');
+                $box.removeClass('d-none alert-success alert-danger alert-warning')
+                    .addClass('alert-' + type)
+                    .html(message);
+                $('html, body').animate({ scrollTop: 0 }, 'fast');
+            }
+        });
+    </script>
+}
