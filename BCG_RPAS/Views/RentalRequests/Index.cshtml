@@ -32,7 +32,7 @@
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </span>
-                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="ค้นหาจากเลขที่คำขอ, หมายเหตุ..." />
+                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="ค้นหาจากเลขที่คำขอ, เลขที่สัญญา, ผู้ให้เช่า, ศูนย์ต้นทุน, หมายเหตุ..." />
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -72,7 +72,7 @@
                         <th class="text-center" style="min-width: 140px;">สถานะคำขอ</th>
                         <th class="text-center" style="min-width: 120px;">สถานะ ERP</th>
                         <th style="min-width: 130px;">วันที่สร้าง</th>
-                        <th class="text-center pe-4" style="width: 150px;">จัดการ</th>
+                        <th class="text-center pe-4 text-nowrap" style="min-width: 220px;">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -222,9 +222,8 @@
 
                 let rowsHtml = '';
                 data.forEach(item => {
-                    const contractNo = item.contractId && contractsMap[item.contractId]
-                        ? contractsMap[item.contractId]
-                        : (item.contractId ? `สัญญา #${item.contractId}` : '-');
+                    const contractNo = item.contractNumber
+                        || (item.contractId && contractsMap[item.contractId] ? contractsMap[item.contractId] : (item.contractId ? `สัญญา #${item.contractId}` : '-'));
 
                     const periodText = (item.periodStartDate && item.periodEndDate)
                         ? `${formatDate(item.periodStartDate)} - ${formatDate(item.periodEndDate)}`
@@ -243,14 +242,14 @@
                     const isCancellable = item.statusId === 1 || item.statusId === 2 || item.statusId === 3 || item.statusId === 6;
 
                     let actionBtns = `
-                        <a href="@Url.Action("Details", "RentalRequests")/${item.id}" class="btn btn-outline-primary btn-sm py-1 px-2" title="ดูรายละเอียด">
+                        <a href="@Url.Action("Details", "RentalRequests")/${item.id}" class="btn btn-outline-primary btn-sm py-1 px-2 text-nowrap" title="ดูรายละเอียด">
                             ดูข้อมูล
                         </a>
                     `;
 
                     if (isDraftOrRevision) {
                         actionBtns += `
-                            <a href="@Url.Action("Edit", "RentalRequests")/${item.id}" class="btn btn-outline-warning btn-sm py-1 px-2 ms-1" title="แก้ไข">
+                            <a href="@Url.Action("Edit", "RentalRequests")/${item.id}" class="btn btn-outline-warning btn-sm py-1 px-2 text-nowrap" title="แก้ไข">
                                 แก้ไข
                             </a>
                         `;
@@ -258,7 +257,7 @@
 
                     if (isCancellable) {
                         actionBtns += `
-                            <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 ms-1 btn-cancel-req"
+                            <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 text-nowrap btn-cancel-req"
                                     data-id="${item.id}" data-version="${item.concurrencyVersion}" title="ยกเลิกคำขอ">
                                 ยกเลิก
                             </button>
@@ -269,12 +268,16 @@
                         <tr>
                             <td class="ps-4 fw-semibold text-muted">#${item.id}</td>
                             <td class="fw-bold text-dark">${contractNo}</td>
-                            <td class="small text-secondary">${periodText}</td>
-                            <td class="text-end fw-bold text-dark">${totalFormatted}</td>
+                            <td class="small text-secondary text-nowrap">${periodText}</td>
+                            <td class="text-end fw-bold text-dark text-nowrap">${totalFormatted}</td>
                             <td class="text-center">${statusBadge}</td>
                             <td class="text-center">${syncBadge}</td>
-                            <td class="small text-muted">${createdDate}</td>
-                            <td class="text-center pe-4">${actionBtns}</td>
+                            <td class="small text-muted text-nowrap">${createdDate}</td>
+                            <td class="text-center pe-4 text-nowrap">
+                                <div class="d-inline-flex align-items-center justify-content-center gap-1 flex-nowrap">
+                                    ${actionBtns}
+                                </div>
+                            </td>
                         </tr>
                     `;
                 });
