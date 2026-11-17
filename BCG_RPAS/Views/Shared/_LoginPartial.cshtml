@@ -1,0 +1,65 @@
+@using System.Security.Claims
+
+<ul class="navbar-nav align-items-center">
+@if (User.Identity?.IsAuthenticated == true)
+{
+    var displayName = User.FindFirst("DisplayName")?.Value ?? User.Identity.Name;
+    var roleName = User.FindFirst(ClaimTypes.Role)?.Value ?? "User";
+
+    <li class="nav-item dropdown me-2">
+        <a class="nav-link dropdown-toggle text-dark d-flex align-items-center gap-2" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="badge bg-success text-white px-2 py-1 rounded-pill" style="font-size: 0.75rem;">
+                @roleName
+            </span>
+            <span class="fw-semibold">@displayName</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="navbarUserDropdown">
+            <li>
+                <div class="px-3 py-2 border-bottom">
+                    <small class="text-muted d-block">ชื่อผู้ใช้งาน (Username)</small>
+                    <span class="fw-bold text-dark">@User.Identity.Name</span>
+                </div>
+            </li>
+            <li>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="p-1">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 rounded">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        ออกจากระบบ (Log Out)
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-item">
+        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 shadow-sm px-3">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                ออกจากระบบ
+            </button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="btn btn-success btn-sm px-3 shadow-sm d-flex align-items-center gap-1" asp-controller="Account" asp-action="Login">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            เข้าสู่ระบบ
+        </a>
+    </li>
+}
+</ul>

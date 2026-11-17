@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>เข้าสู่ระบบ | BCG RPAS - Rental Payment & Approval System</title>
+    <!-- Google Fonts: Sarabun & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <style>
+        :root {
+            --bcg-primary: #0F5132;        /* Dark Forest Green - Corporate & Trust */
+            --bcg-primary-hover: #0b3d26;
+            --bcg-accent: #198754;         /* Fresh Green */
+            --bcg-gold: #D4AF37;           /* Elegant Gold Accent */
+            --navy-dark: #0B192C;          /* Deep Corporate Navy */
+            --navy-subtle: #1E3E62;
+            --bg-surface: #F8FAFC;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0A192F 0%, #0F382A 50%, #071E18 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: var(--text-main);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Subtle Background Ambient Lights */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(25, 135, 84, 0.25) 0%, rgba(25, 135, 84, 0) 70%);
+            top: -100px;
+            left: -100px;
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(15, 81, 50, 0.3) 0%, rgba(15, 81, 50, 0) 70%);
+            bottom: -80px;
+            right: -80px;
+            border-radius: 50%;
+            filter: blur(50px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Main Container Card */
+        .login-card-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1020px;
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
+            display: flex;
+            min-height: 580px;
+        }
+
+        /* Brand Hero Side (Left) */
+        .brand-panel {
+            background: linear-gradient(145deg, #081B15 0%, #0D2E24 60%, #124032 100%);
+            color: #ffffff;
+            padding: 3.5rem 3rem;
+            width: 44%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #A3E635;
+            width: fit-content;
+        }
+
+        .brand-logo-title {
+            font-size: 2.1rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+            margin-top: 1.25rem;
+            color: #ffffff;
+        }
+
+        .brand-logo-title span {
+            color: #4ADE80;
+        }
+
+        .brand-desc {
+            font-size: 0.95rem;
+            color: #94A3B8;
+            margin-top: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .features-list {
+            margin-top: 2rem;
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: #E2E8F0;
+        }
+
+        .feature-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(74, 222, 128, 0.15);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4ADE80;
+            flex-shrink: 0;
+        }
+
+        .brand-footer {
+            font-size: 0.78rem;
+            color: #64748B;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Form Side (Right) */
+        .form-panel {
+            flex: 1;
+            padding: 3.5rem 3.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        .form-header {
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 0.35rem;
+        }
+
+        .form-subtitle {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+        }
+
+        /* Floating / Elevated Inputs */
+        .input-group-custom {
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .input-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.45rem;
+            display: block;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-prefix-icon {
+            position: absolute;
+            left: 14px;
+            color: #94A3B8;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            height: 48px;
+            padding: 0.6rem 2.75rem 0.6rem 2.6rem;
+            font-size: 0.95rem;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 12px;
+            background-color: #F8FAFC;
+            color: #0F172A;
+            transition: all 0.2s ease;
+        }
+
+        .form-control-custom:focus {
+            outline: none;
+            background-color: #ffffff;
+            border-color: #16A34A;
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+        }
+
+        .form-control-custom:focus + .input-prefix-icon {
+            color: #16A34A;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #94A3B8;
+            cursor: pointer;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+
+        .password-toggle-btn:hover {
+            color: #334155;
+        }
+
+        /* Options row */
+        .form-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.75rem;
+            font-size: 0.88rem;
+        }
+
+        .form-check-label {
+            color: #475569;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .form-check-input:checked {
+            background-color: #16A34A;
+            border-color: #16A34A;
+        }
+
+        .help-link {
+            color: #16A34A;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .help-link:hover {
+            color: #0F5132;
+            text-decoration: underline;
+        }
+
+        /* Sign in button */
+        .btn-submit-login {
+            width: 100%;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #16A34A 0%, #0F5132 100%);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 20px -5px rgba(22, 163, 74, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 24px -5px rgba(22, 163, 74, 0.5);
+            background: linear-gradient(135deg, #15803D 0%, #0B3D26 100%);
+        }
+
+        .btn-submit-login:active {
+            transform: translateY(1px);
+        }
+
+        /* Alert message */
+        .alert-custom {
+            display: none;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-error {
+            background-color: #FEF2F2;
+            border: 1px solid #FCA5A5;
+            color: #B91C1C;
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 860px) {
+            .login-card-wrapper {
+                flex-direction: column;
+                max-width: 480px;
+            }
+            .brand-panel {
+                width: 100%;
+                padding: 2.25rem 2rem;
+            }
+            .form-panel {
+                padding: 2.25rem 2rem;
+            }
+            .features-list {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card-wrapper">
+        <!-- Brand / System Introduction Panel (Left) -->
+        <div class="brand-panel">
+            <div>
+                <div class="brand-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Enterprise Portal
+                </div>
+
+                <div class="brand-logo-title">
+                    BCG <span>RPAS</span>
+                </div>
+                <div class="brand-desc">
+                    Rental Payment &amp; Approval System<br>
+                    ระบบบริหารและอนุมัติการจ่ายค่าเช่าแบบบูรณาการ
+                </div>
+
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <div class="feature-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <strong>Fast Workflow</strong>: อนุมัติเอกสารรวดเร็วหลายระดับ
+                        </div>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10"></line>
+                                <line x1="12" y1="20" x2="12" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="14"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <strong>Audit &amp; ERP Sync</strong>: ซิงค์ข้อมูลบัญชีและการเงินอัตโนมัติ
+                        </div>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon-box">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <strong>Role-Based Access</strong>: ควบคุมสิทธิ์ความปลอดภัยสูงสุด
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="brand-footer">
+                <span>&copy; 2026 BCG Corporate</span>
+                <span>v1.0.0 (Secure Gateway)</span>
+            </div>
+        </div>
+
+        <!-- Login Form Panel (Right) -->
+        <div class="form-panel">
+            <div class="form-header">
+                <h1 class="form-title">ยินดีต้อนรับกลับมา</h1>
+                <p class="form-subtitle">กรุณาระบุชื่อผู้ใช้งานและรหัสผ่านเพื่อเข้าสู่ระบบงาน</p>
+            </div>
+
+            <!-- Error Notification Banner (Simulated) -->
+            <div id="errorAlert" class="alert-custom alert-error">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span id="errorMessage">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</span>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+                <!-- Username Field -->
+                <div class="input-group-custom">
+                    <label class="input-label" for="usernameInput">ชื่อผู้ใช้ (Username)</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <input type="text" id="usernameInput" class="form-control-custom" placeholder="เช่น gun01 หรือชื่อผู้ใช้ระบบ" required autocomplete="username" autofocus />
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="input-group-custom">
+                    <label class="input-label" for="passwordInput">รหัสผ่าน (Password)</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </span>
+                        <input type="password" id="passwordInput" class="form-control-custom" placeholder="••••••••" required autocomplete="current-password" />
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility()" title="แสดง/ซ่อนรหัสผ่าน">
+                            <svg id="eyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Helpdesk -->
+                <div class="form-options">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">
+                            จดจำการเข้าสู่ระบบ
+                        </label>
+                    </div>
+                    <a href="javascript:void(0)" onclick="alert('กรุณาติดต่อ IT Support ภายในองค์กร (โทร. 1122 หรืออีเมล it-support@corporate.local)')" class="help-link">
+                        ติดต่อฝ่าย IT / ลืมรหัสผ่าน?
+                    </a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="btnSubmit" class="btn-submit-login">
+                    <span id="btnText">เข้าสู่ระบบ (Sign In)</span>
+                    <svg id="btnIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            }
+        }
+
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            const btnText = document.getElementById('btnText');
+            const btnIcon = document.getElementById('btnIcon');
+            const alertBox = document.getElementById('errorAlert');
+
+            alertBox.style.display = 'none';
+            btn.disabled = true;
+            btnText.textContent = 'กำลังตรวจสอบข้อมูล...';
+            btnIcon.style.display = 'none';
+
+            const payload = {
+                userName: document.getElementById('usernameInput').value.trim(),
+                password: document.getElementById('passwordInput').value
+            };
+
+            try {
+                // ตัวอย่างจำลองการเรียก Auth API (http://localhost:5xxx/api/auth/login)
+                // หากยังไม่ได้รัน API จะจำลอง delay ให้เห็น interaction
+                await new Promise(r => setTimeout(r, 800));
+
+                if (payload.userName === 'gun01' && payload.password === '1234') {
+                    btnText.textContent = 'เข้าสู่ระบบสำเร็จ!';
+                    btn.style.background = '#0F5132';
+                    setTimeout(() => {
+                        alert('เข้าสู่ระบบสำเร็จ! (Mockup Demonstration: Token ได้รับและพร้อม Redirect ไปหน้า Dashboard)');
+                    }, 300);
+                } else {
+                    throw new Error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+                }
+            } catch (err) {
+                alertBox.style.display = 'flex';
+                document.getElementById('errorMessage').textContent = err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์';
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'เข้าสู่ระบบ (Sign In)';
+                btnIcon.style.display = 'inline';
+            }
+        }
+    </script>
+</body>
+</html>
