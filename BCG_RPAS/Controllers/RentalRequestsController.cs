@@ -32,6 +32,12 @@ namespace BCG_RPAS.Controllers
         // 1. Razor View Pages
         // ==========================================
 
+        private bool IsRequesterRole()
+        {
+            var roleCode = User.FindFirst("RoleCode")?.Value;
+            return string.Equals(roleCode, "REQUESTER", StringComparison.OrdinalIgnoreCase);
+        }
+
         [HttpGet]
         public IActionResult Index()
         {
@@ -41,12 +47,20 @@ namespace BCG_RPAS.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            if (!IsRequesterRole())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             return View();
         }
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
+            if (!IsRequesterRole())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             if (id <= 0)
             {
                 return RedirectToAction(nameof(Index));
@@ -130,6 +144,11 @@ namespace BCG_RPAS.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveDraft([FromBody] JsonElement payload, CancellationToken cancellationToken)
         {
+            if (!IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "เฉพาะผู้ขออนุมัติ (REQUESTER) เท่านั้นที่สามารถสร้างหรือแก้ไขใบคำขอค่าเช่าได้" });
+            }
+
             try
             {
                 var client = CreateApiClient();
@@ -179,12 +198,20 @@ namespace BCG_RPAS.Controllers
         [HttpPost]
         public async Task<IActionResult> Submit(int id, [FromBody] JsonElement payload, CancellationToken cancellationToken)
         {
+            if (!IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "เฉพาะผู้ขออนุมัติ (REQUESTER) เท่านั้นที่สามารถส่งใบคำขออนุมัติได้" });
+            }
             return await ForwardPostAsync($"/api/rental-requests/{id}/submit", payload, cancellationToken);
         }
 
         [HttpPost]
         public async Task<IActionResult> Cancel(int id, [FromBody] JsonElement payload, CancellationToken cancellationToken)
         {
+            if (!IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "เฉพาะผู้ขออนุมัติ (REQUESTER) เท่านั้นที่สามารถยกเลิกใบคำขอได้" });
+            }
             return await ForwardPostAsync($"/api/rental-requests/{id}/cancel", payload, cancellationToken);
         }
 
@@ -199,6 +226,11 @@ namespace BCG_RPAS.Controllers
             [FromForm] List<IFormFile> files,
             CancellationToken cancellationToken)
         {
+            if (!IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "เฉพาะผู้ขออนุมัติ (REQUESTER) เท่านั้นที่สามารถอัปโหลดเอกสารแนบได้" });
+            }
+
             if (requestId <= 0)
             {
                 return BadRequest(new { detail = "ไม่พบเลขที่ใบคำขอสำหรับจัดเก็บไฟล์" });

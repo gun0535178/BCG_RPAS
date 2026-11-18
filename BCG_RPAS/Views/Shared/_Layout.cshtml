@@ -29,11 +29,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="RentalRequests" asp-action="Index">คำขอค่าเช่า</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="Approvals" asp-action="Index">งานรออนุมัติ</a>
-                        </li>
                         @if (User.Identity?.IsAuthenticated == true && !string.Equals(User.FindFirst("RoleCode")?.Value, "REQUESTER", StringComparison.OrdinalIgnoreCase))
                         {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="Approvals" asp-action="Index">งานรออนุมัติ</a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="MasterData" asp-action="Index">จัดการข้อมูลหลัก</a>
                             </li>

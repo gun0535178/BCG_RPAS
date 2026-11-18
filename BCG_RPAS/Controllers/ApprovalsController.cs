@@ -20,15 +20,30 @@ namespace BCG_RPAS.Controllers
             _logger = logger;
         }
 
+        private bool IsRequesterRole()
+        {
+            var roleCode = User.FindFirst("RoleCode")?.Value;
+            return string.Equals(roleCode, "REQUESTER", StringComparison.OrdinalIgnoreCase);
+        }
+
         [HttpGet]
         public IActionResult Index()
         {
+            if (IsRequesterRole())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             return View();
         }
 
         [HttpGet]
         public async Task<IActionResult> GetInbox(CancellationToken cancellationToken)
         {
+            if (IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "ผู้ขออนุมัติไม่มีสิทธิ์เข้าถึงกล่องงานรออนุมัติ" });
+            }
+
             try
             {
                 var client = CreateApiClient();
@@ -52,18 +67,30 @@ namespace BCG_RPAS.Controllers
         [HttpPost]
         public async Task<IActionResult> Approve(int id, [FromBody] JsonElement payload, CancellationToken cancellationToken)
         {
+            if (IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "ผู้ขออนุมัติไม่มีสิทธิ์อนุมัติคำขอ" });
+            }
             return await ForwardPostAsync($"/api/approvals/{id}/approve", payload, cancellationToken);
         }
 
         [HttpPost]
         public async Task<IActionResult> Return(int id, [FromBody] JsonElement payload, CancellationToken cancellationToken)
         {
+            if (IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "ผู้ขออนุมัติไม่มีสิทธิ์ส่งคืนคำขอ" });
+            }
             return await ForwardPostAsync($"/api/approvals/{id}/return", payload, cancellationToken);
         }
 
         [HttpPost]
         public async Task<IActionResult> Reject(int id, [FromBody] JsonElement payload, CancellationToken cancellationToken)
         {
+            if (IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "ผู้ขออนุมัติไม่มีสิทธิ์ปฏิเสธคำขอ" });
+            }
             return await ForwardPostAsync($"/api/approvals/{id}/reject", payload, cancellationToken);
         }
 
