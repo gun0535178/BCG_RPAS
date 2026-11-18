@@ -36,6 +36,12 @@
                                 <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="MasterData" asp-action="Index">จัดการข้อมูลหลัก</a>
                             </li>
                         }
+                        @if (User.Identity?.IsAuthenticated == true && string.Equals(User.FindFirst("RoleCode")?.Value, "ADMINISTRATOR", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="ApprovalAssignments" asp-action="Index">จัดการสายอนุมัติ</a>
+                            </li>
+                        }
                       @*   <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li> *@

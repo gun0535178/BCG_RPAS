@@ -9,6 +9,7 @@
         var roleName = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
         var roleCode = User.FindFirst("RoleCode")?.Value ?? "";
         var canManageMaster = !string.Equals(roleCode, "REQUESTER", StringComparison.OrdinalIgnoreCase);
+        var isAdmin = string.Equals(roleCode, "ADMINISTRATOR", StringComparison.OrdinalIgnoreCase);
 
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
             <div class="card-body p-4 p-md-5" style="background: linear-gradient(135deg, #0F5132 0%, #198754 100%); color: white;">
@@ -78,6 +79,23 @@
                             <p class="card-text text-muted small mb-3">สัญญา, คู่ค้า, ฝ่าย/แผนก  และประเภทค่าเช่า </p>
                             <a asp-controller="MasterData" asp-action="Index" class="btn btn-outline-warning text-dark btn-sm stretched-link fw-semibold">
                                 จัดการข้อมูลหลัก &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+            @if (isAdmin)
+            {
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 h-100 p-3 position-relative">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-danger">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <h5 class="card-title mb-0 fw-bold">จัดการสายอนุมัติ (Admin)</h5>
+                            </div>
+                            <p class="card-text text-muted small mb-3">ผูกสายการอนุมัติขั้นที่ 1 (Manager) และขั้นที่ 2 (Executive) ให้กับผู้ขออนุมัติ</p>
+                            <a asp-controller="ApprovalAssignments" asp-action="Index" class="btn btn-outline-danger btn-sm stretched-link fw-semibold">
+                                ตั้งค่าสายอนุมัติ &rarr;
                             </a>
                         </div>
                     </div>

@@ -1,0 +1,388 @@
+@{
+    ViewData["Title"] = "จัดการสายอนุมัติ (Approval Assignments)";
+}
+
+<div class="container-fluid py-3">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold mb-0" style="color: #0F5132;">จัดการสายอนุมัติ (Approval Assignments)</h2>
+                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-semibold">เฉพาะผู้ดูแลระบบ (Admin Only)</span>
+            </div>
+            <p class="text-muted mb-0 mt-1">กำหนดหัวหน้าผู้อนุมัติขั้นที่ 1 (Manager) และผู้บริหารขั้นที่ 2 (Executive) สำหรับผู้ขออนุมัติแต่ละราย</p>
+        </div>
+        <div class="d-flex gap-2 flex-shrink-0">
+            <button type="button" id="btnRefresh" class="btn btn-outline-success px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 text-nowrap">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                รีเฟรช
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="pageAlert" class="alert d-none rounded-3 shadow-sm mb-4" role="alert"></div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="bg-light-subtle border-bottom px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div style="max-width: 360px; width: 100%;">
+                <input type="text" id="searchInput" class="form-control form-control-sm bg-white" placeholder="ค้นหาชื่อผู้ขอ, Username หรือชื่อผู้อนุมัติ..." />
+            </div>
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="onlyRequesterSwitch" checked />
+                <label class="form-check-label small fw-semibold text-secondary" for="onlyRequesterSwitch">แสดงเฉพาะบทบาท REQUESTER</label>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4" style="width: 80px;">User ID</th>
+                            <th>ผู้ขออนุมัติ (Requester)</th>
+                            <th>บทบาท</th>
+                            <th>ขั้นที่ 1: หัวหน้าอนุมัติ (Manager)</th>
+                            <th>ขั้นที่ 2: ผู้บริหารอนุมัติ (Executive)</th>
+                            <th class="text-center" style="width: 140px;">สถานะสายอนุมัติ</th>
+                            <th class="text-center pe-4" style="width: 200px;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">กำลังโหลดข้อมูลสายอนุมัติ...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Configure Approval Assignment -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-success" id="assignModalTitle">กำหนดสายอนุมัติ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <input type="hidden" id="requesterIdInput" value="0" />
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">ผู้ขออนุมัติ (Requester)</label>
+                    <input type="text" class="form-control bg-light fw-bold text-dark" id="requesterLabelInput" readonly disabled />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="managerSelect">
+                        ขั้นที่ 1: หัวหน้าผู้อนุมัติ (Manager) <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="managerSelect" required>
+                        <option value="">-- เลือกผู้จัดการ (Manager) --</option>
+                    </select>
+                    <div class="form-text small text-muted">พิจารณาอนุมัติทุกคำขอเป็นลำดับแรก</div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold" for="executiveSelect">
+                        ขั้นที่ 2: ผู้บริหารผู้อนุมัติ (Executive) <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="executiveSelect" required>
+                        <option value="">-- เลือกผู้บริหาร (Executive) --</option>
+                    </select>
+                    <div class="form-text small text-muted">พิจารณาอนุมัติขั้นที่ 2 เมื่อยอดก่อน VAT เกิน 50,000 บาท</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success px-4 fw-semibold" id="btnSaveAssignment">บันทึกสายอนุมัติ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirm Soft Delete -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">ยืนยันการยกเลิกสายอนุมัติ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="mb-2">คุณต้องการยกเลิกการผูกสายอนุมัติของ <strong id="deleteRequesterLabel" class="text-dark"></strong> ใช่หรือไม่?</p>
+                <p class="small text-muted mb-0">ระบบจะทำการ Soft Delete (ปรับ <code>Active = 0</code>) ในตาราง <code>ApprovalAssignments</code></p>
+                <input type="hidden" id="deleteRequesterId" value="0" />
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn btn-danger px-4 fw-semibold" id="btnConfirmDelete">ยืนยันการลบ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const state = {
+                search: '',
+                onlyRequester: true,
+                requesters: [],
+                managers: [],
+                executives: []
+            };
+
+            const alertEl = document.getElementById('pageAlert');
+            let assignModalInstance = null;
+            let deleteModalInstance = null;
+
+            function escapeHtml(val) {
+                if (val === null || val === undefined) return '';
+                return String(val)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function showAlert(message, type = 'success') {
+                alertEl.className = `alert alert-${type} alert-dismissible fade show rounded-3 shadow-sm mb-4`;
+                alertEl.innerHTML = `
+                    <div>${escapeHtml(message)}</div>
+                    <button type="button" class="btn-close" onclick="this.parentElement.classList.add('d-none')"></button>
+                `;
+            }
+
+            function renderTable() {
+                const tbody = document.getElementById('tableBody');
+                const q = state.search.toLowerCase();
+
+                const filtered = state.requesters.filter(item => {
+                    if (state.onlyRequester && item.roleCode !== 'REQUESTER') {
+                        return false;
+                    }
+                    if (!q) return true;
+                    return [
+                        item.requesterId,
+                        item.userName,
+                        item.displayName,
+                        item.roleCode,
+                        item.managerDisplayName,
+                        item.managerUserName,
+                        item.executiveDisplayName,
+                        item.executiveUserName
+                    ].some(f => f && String(f).toLowerCase().includes(q));
+                });
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">ไม่พบข้อมูลผู้ใช้งานตามเงื่อนไข</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map(r => {
+                    const isConfigured = r.managerApproverId && r.executiveApproverId;
+
+                    const mgrHtml = r.managerApproverId
+                        ? `<div class="fw-semibold text-dark">${escapeHtml(r.managerDisplayName)}</div><div class="small text-muted">@@${escapeHtml(r.managerUserName)}</div>`
+                        : `<span class="text-danger small fw-semibold">ยังไม่กำหนด</span>`;
+
+                    const execHtml = r.executiveApproverId
+                        ? `<div class="fw-semibold text-dark">${escapeHtml(r.executiveDisplayName)}</div><div class="small text-muted">@@${escapeHtml(r.executiveUserName)}</div>`
+                        : `<span class="text-danger small fw-semibold">ยังไม่กำหนด</span>`;
+
+                    const statusBadge = isConfigured
+                        ? `<span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill">พร้อมส่งอนุมัติ</span>`
+                        : `<span class="badge bg-warning-subtle text-warning-emphasis px-3 py-1 rounded-pill">ยังไม่ครบ</span>`;
+
+                    const deleteBtn = (r.managerApproverId || r.executiveApproverId)
+                        ? `<button type="button" class="btn btn-sm btn-outline-danger rounded-3 px-3 text-nowrap" onclick="window.AssignUI.promptDelete(${r.requesterId})">ลบ</button>`
+                        : '';
+
+                    return `
+                        <tr>
+                            <td class="ps-4 fw-semibold text-muted">#${r.requesterId}</td>
+                            <td>
+                                <div class="fw-bold text-dark">${escapeHtml(r.displayName)}</div>
+                                <div class="small text-muted">@@${escapeHtml(r.userName)}</div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border px-2 py-1">${escapeHtml(r.roleCode)}</span></td>
+                            <td>${mgrHtml}</td>
+                            <td>${execHtml}</td>
+                            <td class="text-center">${statusBadge}</td>
+                            <td class="text-center pe-4">
+                                <div class="d-inline-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-3 px-3 text-nowrap" onclick="window.AssignUI.openEdit(${r.requesterId})">
+                                        ตั้งค่าสายอนุมัติ
+                                    </button>
+                                    ${deleteBtn}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            async function loadData() {
+                try {
+                    const res = await fetch('/ApprovalAssignments/GetAll', { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถโหลดข้อมูลสายอนุมัติได้', 'danger');
+                        return;
+                    }
+
+                    state.requesters = data.requesters || [];
+                    state.managers = data.managers || [];
+                    state.executives = data.executives || [];
+
+                    renderTable();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'danger');
+                }
+            }
+
+            window.AssignUI = {
+                openEdit(requesterId) {
+                    const item = state.requesters.find(x => x.requesterId === requesterId);
+                    if (!item) return;
+
+                    document.getElementById('requesterIdInput').value = item.requesterId;
+                    document.getElementById('requesterLabelInput').value = `${item.displayName} (@@${item.userName})`;
+
+                    const mgrSelect = document.getElementById('managerSelect');
+                    mgrSelect.innerHTML = '<option value="">-- เลือกผู้จัดการ (Manager) --</option>' +
+                        state.managers
+                            .filter(m => m.id !== item.requesterId)
+                            .map(m => `<option value="${m.id}">${escapeHtml(m.displayName)} (@@${escapeHtml(m.userName)})</option>`)
+                            .join('');
+
+                    const execSelect = document.getElementById('executiveSelect');
+                    execSelect.innerHTML = '<option value="">-- เลือกผู้บริหาร (Executive) --</option>' +
+                        state.executives
+                            .filter(e => e.id !== item.requesterId)
+                            .map(e => `<option value="${e.id}">${escapeHtml(e.displayName)} (@@${escapeHtml(e.userName)})</option>`)
+                            .join('');
+
+                    if (item.managerApproverId) {
+                        mgrSelect.value = String(item.managerApproverId);
+                    } else if (state.managers.length === 1 && state.managers[0].id !== item.requesterId) {
+                        mgrSelect.value = String(state.managers[0].id);
+                    }
+
+                    if (item.executiveApproverId) {
+                        execSelect.value = String(item.executiveApproverId);
+                    } else if (state.executives.length === 1 && state.executives[0].id !== item.requesterId) {
+                        execSelect.value = String(state.executives[0].id);
+                    }
+
+                    assignModalInstance.show();
+                },
+
+                promptDelete(requesterId) {
+                    const item = state.requesters.find(x => x.requesterId === requesterId);
+                    if (!item) return;
+
+                    document.getElementById('deleteRequesterId').value = item.requesterId;
+                    document.getElementById('deleteRequesterLabel').textContent = `${item.displayName} (@@${item.userName})`;
+                    deleteModalInstance.show();
+                }
+            };
+
+            async function saveAssignment() {
+                const requesterId = parseInt(document.getElementById('requesterIdInput').value || '0', 10);
+                const managerApproverId = parseInt(document.getElementById('managerSelect').value || '0', 10);
+                const executiveApproverId = parseInt(document.getElementById('executiveSelect').value || '0', 10);
+
+                if (!requesterId || !managerApproverId || !executiveApproverId) {
+                    showAlert('กรุณาเลือกหัวหน้าผู้อนุมัติ (Manager) และผู้บริหาร (Executive) ให้ครบถ้วน', 'warning');
+                    return;
+                }
+
+                const btn = document.getElementById('btnSaveAssignment');
+                btn.disabled = true;
+                try {
+                    const res = await fetch('/ApprovalAssignments/Save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            requesterId,
+                            managerApproverId,
+                            executiveApproverId
+                        })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถบันทึกสายอนุมัติได้', 'danger');
+                        return;
+                    }
+                    assignModalInstance.hide();
+                    showAlert(data.message || 'บันทึกสายอนุมัติสำเร็จ', 'success');
+                    await loadData();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการบันทึกสายอนุมัติ', 'danger');
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            async function confirmDelete() {
+                const requesterId = parseInt(document.getElementById('deleteRequesterId').value || '0', 10);
+                if (!requesterId) return;
+
+                const btn = document.getElementById('btnConfirmDelete');
+                btn.disabled = true;
+                try {
+                    const res = await fetch(`/ApprovalAssignments/Delete/${requesterId}`, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถลบสายอนุมัติได้', 'danger');
+                        return;
+                    }
+                    deleteModalInstance.hide();
+                    showAlert(data.message || 'ยกเลิกสายอนุมัติเรียบร้อยแล้ว', 'success');
+                    await loadData();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการลบสายอนุมัติ', 'danger');
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                assignModalInstance = new bootstrap.Modal(document.getElementById('assignModal'));
+                deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    state.search = e.target.value.trim();
+                    renderTable();
+                });
+
+                document.getElementById('onlyRequesterSwitch').addEventListener('change', (e) => {
+                    state.onlyRequester = e.target.checked;
+                    renderTable();
+                });
+
+                document.getElementById('btnRefresh').addEventListener('click', loadData);
+                document.getElementById('btnSaveAssignment').addEventListener('click', saveAssignment);
+                document.getElementById('btnConfirmDelete').addEventListener('click', confirmDelete);
+
+                loadData();
+            });
+        })();
+    </script>
+}
