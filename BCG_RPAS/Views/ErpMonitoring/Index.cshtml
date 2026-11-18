@@ -1,0 +1,451 @@
+@{
+    ViewData["Title"] = "ติดตามการส่ง ERP";
+}
+
+<div class="container-fluid py-3">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold mb-0" style="color: #0F5132;">ติดตามการส่งข้อมูล ERP</h2>
+                <span id="mockModeBadge" class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-semibold">โหมดปกติ (ส่งสำเร็จ)</span>
+            </div>
+            <p class="text-muted mb-0 mt-1">ตรวจสอบคิวงานที่อนุมัติแล้ว ประวัติการพยายามส่งข้อมูล เลขอ้างอิง ERP และการส่งซ้ำ</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+            <button type="button" id="btnToggleMockMode" class="btn btn-outline-secondary px-3 py-2 rounded-3 fw-semibold text-nowrap">
+                สลับโหมดจำลอง ERP
+            </button>
+            <button type="button" id="btnProcessDue" class="btn btn-success px-3 py-2 rounded-3 fw-semibold shadow-sm text-nowrap">
+                ประมวลผลคิวที่รอส่งทันที
+            </button>
+            <button type="button" id="btnRefresh" class="btn btn-outline-success px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 text-nowrap">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                รีเฟรช
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="pageAlert" class="alert d-none rounded-3 shadow-sm mb-4" role="alert"></div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3">
+                <small class="text-muted fw-semibold">คิวงานทั้งหมด</small>
+                <div class="fs-3 fw-bold text-dark mt-1" id="statTotal">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3">
+                <small class="text-muted fw-semibold">ส่ง ERP สำเร็จ</small>
+                <div class="fs-3 fw-bold text-success mt-1" id="statSucceeded">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3">
+                <small class="text-muted fw-semibold">รอดำเนินการ / รอส่งซ้ำ</small>
+                <div class="fs-3 fw-bold text-warning-emphasis mt-1" id="statPending">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3">
+                <small class="text-muted fw-semibold">ส่งไม่สำเร็จ (ครบ 5 ครั้ง)</small>
+                <div class="fs-3 fw-bold text-danger mt-1" id="statFailed">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar & Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="bg-light-subtle border-bottom px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div style="max-width: 360px; width: 100%;">
+                <input type="text" id="searchInput" class="form-control form-control-sm bg-white" placeholder="ค้นหาเลขที่คำขอ, เลขที่สัญญา, ผู้ให้เช่า หรือเลขอ้างอิง ERP..." />
+            </div>
+            <div style="min-width: 220px;">
+                <select id="statusFilterSelect" class="form-select form-select-sm bg-white">
+                    <option value="">-- ทุกสถานะ ERP --</option>
+                    <option value="Pending">รอดำเนินการ</option>
+                    <option value="RetryScheduled">รอส่งซ้ำ</option>
+                    <option value="Succeeded">ซิงค์สำเร็จ</option>
+                    <option value="Failed">ส่งไม่สำเร็จ (รอตรวจสอบ)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4" style="width: 90px;">คิวงาน</th>
+                            <th style="width: 110px;">ใบคำขอ</th>
+                            <th>สัญญา / ผู้ให้เช่า</th>
+                            <th class="text-end">ยอดรวมสุทธิ</th>
+                            <th class="text-center">สถานะ ERP</th>
+                            <th class="text-center">จำนวนครั้งที่ส่ง</th>
+                            <th>เลขอ้างอิง ERP / สาเหตุล่าสุด</th>
+                            <th>กำหนดส่งถัดไป / เวลาเสร็จ</th>
+                            <th class="text-center pe-4" style="width: 220px;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">กำลังโหลดรายการคิว ERP...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: View Attempts History -->
+<div class="modal fade" id="attemptsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom pb-3">
+                <h5 class="modal-title fw-bold text-dark" id="attemptsModalTitle">ประวัติการส่งข้อมูลไป ERP</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th class="ps-3" style="width: 90px;">ครั้งที่</th>
+                                <th style="width: 150px;">วัน-เวลาที่ส่ง</th>
+                                <th class="text-center" style="width: 120px;">ผลลัพธ์</th>
+                                <th class="text-center" style="width: 100px;">รหัสตอบกลับ</th>
+                                <th class="pe-3">รายละเอียด / สาเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attemptsTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">กำลังโหลดประวัติ...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const state = {
+                simulateFailure: false,
+                search: '',
+                statusFilter: '',
+                jobs: []
+            };
+
+            const alertEl = document.getElementById('pageAlert');
+            let attemptsModalInstance = null;
+
+            function escapeHtml(val) {
+                if (val === null || val === undefined) return '';
+                return String(val)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function formatDateTime(str) {
+                if (!str) return '-';
+                const d = new Date(str);
+                if (isNaN(d.getTime())) return str;
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const yyyy = d.getFullYear();
+                const hh = String(d.getHours()).padStart(2, '0');
+                const min = String(d.getMinutes()).padStart(2, '0');
+                const ss = String(d.getSeconds()).padStart(2, '0');
+                return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+            }
+
+            function formatCurrency(val) {
+                if (val == null) return '-';
+                return Number(val).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ฿';
+            }
+
+            function showAlert(message, type = 'success') {
+                alertEl.className = `alert alert-${type} alert-dismissible fade show rounded-3 shadow-sm mb-4`;
+                alertEl.innerHTML = `
+                    <div>${escapeHtml(message)}</div>
+                    <button type="button" class="btn-close" onclick="this.parentElement.classList.add('d-none')"></button>
+                `;
+            }
+
+            function getStatusBadge(status) {
+                switch (status) {
+                    case 'Succeeded':
+                        return '<span class="badge bg-success px-3 py-1 rounded-pill">ซิงค์สำเร็จ</span>';
+                    case 'Processing':
+                        return '<span class="badge bg-info text-dark px-3 py-1 rounded-pill">กำลังส่ง</span>';
+                    case 'RetryScheduled':
+                        return '<span class="badge bg-warning text-dark px-3 py-1 rounded-pill">รอส่งซ้ำ</span>';
+                    case 'Failed':
+                        return '<span class="badge bg-danger px-3 py-1 rounded-pill">ส่งไม่สำเร็จ</span>';
+                    default:
+                        return '<span class="badge bg-secondary-subtle text-secondary border px-3 py-1 rounded-pill">รอดำเนินการ</span>';
+                }
+            }
+
+            function updateModeBadge() {
+                const badge = document.getElementById('mockModeBadge');
+                const btn = document.getElementById('btnToggleMockMode');
+
+                if (state.simulateFailure) {
+                    badge.className = 'badge bg-danger text-white rounded-pill px-3 py-2 fw-semibold';
+                    badge.textContent = 'โหมดจำลอง ERP ขัดข้อง (ส่งไม่สำเร็จ)';
+                    btn.className = 'btn btn-outline-success px-3 py-2 rounded-3 fw-semibold text-nowrap';
+                    btn.textContent = 'สลับกลับเป็นโหมดส่งสำเร็จปกติ';
+                } else {
+                    badge.className = 'badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-semibold';
+                    badge.textContent = 'โหมดปกติ (ส่งสำเร็จ)';
+                    btn.className = 'btn btn-outline-danger px-3 py-2 rounded-3 fw-semibold text-nowrap';
+                    btn.textContent = 'จำลองเหตุการณ์ ERP ล่ม';
+                }
+            }
+
+            function renderStats() {
+                const total = state.jobs.length;
+                const succeeded = state.jobs.filter(j => j.status === 'Succeeded').length;
+                const pending = state.jobs.filter(j => j.status === 'Pending' || j.status === 'RetryScheduled' || j.status === 'Processing').length;
+                const failed = state.jobs.filter(j => j.status === 'Failed').length;
+
+                document.getElementById('statTotal').textContent = total;
+                document.getElementById('statSucceeded').textContent = succeeded;
+                document.getElementById('statPending').textContent = pending;
+                document.getElementById('statFailed').textContent = failed;
+            }
+
+            function renderTable() {
+                const tbody = document.getElementById('tableBody');
+                const q = state.search.toLowerCase();
+
+                const filtered = state.jobs.filter(j => {
+                    if (state.statusFilter && j.status !== state.statusFilter) {
+                        return false;
+                    }
+                    if (!q) return true;
+                    return [
+                        j.id,
+                        j.requestId,
+                        j.contractNumber,
+                        j.vendorName,
+                        j.requesterName,
+                        j.externalReference,
+                        j.lastError
+                    ].some(f => f && String(f).toLowerCase().includes(q));
+                });
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted">ไม่พบรายการคิวส่งข้อมูล ERP</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map(j => {
+                    const refOrErrorHtml = j.status === 'Succeeded'
+                        ? `<code class="fw-bold text-success bg-success-subtle px-2 py-1 rounded">${escapeHtml(j.externalReference || '-')}</code>`
+                        : (j.lastError
+                            ? `<span class="small text-danger">${escapeHtml(j.lastError)}</span>`
+                            : `<span class="small text-muted">รอประมวลผล</span>`);
+
+                    const dateInfo = j.status === 'Succeeded' || j.status === 'Failed'
+                        ? formatDateTime(j.completedDate || j.modifyDate)
+                        : formatDateTime(j.nextAttemptDate || j.createDate);
+
+                    const canRetry = j.status !== 'Succeeded';
+                    const retryBtnHtml = canRetry
+                        ? `<button type="button" class="btn btn-sm btn-success rounded-3 px-2 text-nowrap" onclick="window.ErpUI.retryJob(${j.id})">ส่งข้อมูลซ้ำ</button>`
+                        : '';
+
+                    return `
+                        <tr>
+                            <td class="ps-4 fw-semibold text-muted">#${j.id}</td>
+                            <td>
+                                <a href="/RentalRequests/Details/${j.requestId}" class="fw-bold text-primary text-decoration-none">คำขอ #${j.requestId}</a>
+                                <div class="small text-muted">รอบ #${j.revisionNumber}</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">${escapeHtml(j.contractNumber || '-')}</div>
+                                <div class="small text-muted">${escapeHtml(j.vendorName || '-')}</div>
+                            </td>
+                            <td class="text-end fw-bold text-dark text-nowrap">${formatCurrency(j.totalAmount)}</td>
+                            <td class="text-center">${getStatusBadge(j.status)}</td>
+                            <td class="text-center fw-semibold">${j.attemptCount} / ${j.maxAttempts}</td>
+                            <td>${refOrErrorHtml}</td>
+                            <td class="small text-muted text-nowrap">${dateInfo}</td>
+                            <td class="text-center pe-4 text-nowrap">
+                                <div class="d-inline-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-3 px-2 text-nowrap" onclick="window.ErpUI.viewAttempts(${j.id}, ${j.requestId})">
+                                        ดูประวัติ
+                                    </button>
+                                    ${retryBtnHtml}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            async function loadData() {
+                try {
+                    const res = await fetch('/ErpMonitoring/GetAll', { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถโหลดข้อมูลคิว ERP ได้', 'danger');
+                        return;
+                    }
+
+                    state.simulateFailure = !!data.simulateFailure;
+                    state.jobs = data.jobs || [];
+
+                    updateModeBadge();
+                    renderStats();
+                    renderTable();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'danger');
+                }
+            }
+
+            window.ErpUI = {
+                async viewAttempts(jobId, requestId) {
+                    document.getElementById('attemptsModalTitle').textContent = `ประวัติการส่งข้อมูล ERP (คิว #${jobId} / คำขอ #${requestId})`;
+                    const tbody = document.getElementById('attemptsTableBody');
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">กำลังโหลดประวัติการส่ง...</td></tr>`;
+                    attemptsModalInstance.show();
+
+                    try {
+                        const res = await fetch(`/ErpMonitoring/GetAttempts/${jobId}`, { headers: { 'Accept': 'application/json' } });
+                        const list = await res.json();
+                        if (!res.ok || !Array.isArray(list) || list.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">ยังไม่มีประวัติการพยายามส่งข้อมูล</td></tr>`;
+                            return;
+                        }
+
+                        tbody.innerHTML = list.map(a => {
+                            const outcomeBadge = a.outcome === 'Succeeded'
+                                ? '<span class="badge bg-success">สำเร็จ</span>'
+                                : '<span class="badge bg-danger">ล้มเหลว</span>';
+
+                            return `
+                                <tr>
+                                    <td class="ps-3 fw-bold">ครั้งที่ ${a.attemptNumber}</td>
+                                    <td class="small text-muted text-nowrap">${formatDateTime(a.startedDate)}</td>
+                                    <td class="text-center">${outcomeBadge}</td>
+                                    <td class="text-center"><code>${a.httpStatus || '-'}</code></td>
+                                    <td class="pe-3 small">${escapeHtml(a.error || a.responseSummary || '-')}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } catch (err) {
+                        console.error(err);
+                        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">เกิดข้อผิดพลาดในการโหลดประวัติ</td></tr>`;
+                    }
+                },
+
+                async retryJob(jobId) {
+                    try {
+                        const res = await fetch(`/ErpMonitoring/RetryJob/${jobId}`, {
+                            method: 'POST',
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        const data = await res.json();
+                        if (!res.ok) {
+                            showAlert(data.detail || 'ไม่สามารถส่งข้อมูลซ้ำได้', 'danger');
+                            return;
+                        }
+                        showAlert(data.message || 'ส่งข้อมูลซ้ำเรียบร้อยแล้ว', 'success');
+                        await loadData();
+                    } catch (err) {
+                        console.error(err);
+                        showAlert('เกิดข้อผิดพลาดในการสั่งส่งข้อมูลซ้ำ', 'danger');
+                    }
+                }
+            };
+
+            async function toggleMockMode() {
+                const nextMode = !state.simulateFailure;
+                try {
+                    const res = await fetch('/ErpMonitoring/SetMode', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ simulateFailure: nextMode })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถเปลี่ยนโหมดได้', 'danger');
+                        return;
+                    }
+                    state.simulateFailure = !!data.simulateFailure;
+                    updateModeBadge();
+                    showAlert(data.message, state.simulateFailure ? 'warning' : 'success');
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการเปลี่ยนโหมด', 'danger');
+                }
+            }
+
+            async function processDueNow() {
+                const btn = document.getElementById('btnProcessDue');
+                btn.disabled = true;
+                try {
+                    const res = await fetch('/ErpMonitoring/ProcessDue', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'เกิดข้อผิดพลาดในการประมวลผลคิว', 'danger');
+                        return;
+                    }
+                    showAlert(data.message, 'success');
+                    await loadData();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการสั่งประมวลผลคิว', 'danger');
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                attemptsModalInstance = new bootstrap.Modal(document.getElementById('attemptsModal'));
+
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    state.search = e.target.value.trim();
+                    renderTable();
+                });
+
+                document.getElementById('statusFilterSelect').addEventListener('change', (e) => {
+                    state.statusFilter = e.target.value;
+                    renderTable();
+                });
+
+                document.getElementById('btnToggleMockMode').addEventListener('click', toggleMockMode);
+                document.getElementById('btnProcessDue').addEventListener('click', processDueNow);
+                document.getElementById('btnRefresh').addEventListener('click', loadData);
+
+                loadData();
+                // Auto refresh table every 10 seconds to reflect background worker updates
+                setInterval(loadData, 10000);
+            });
+        })();
+    </script>
+}

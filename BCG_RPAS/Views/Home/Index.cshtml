@@ -71,6 +71,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 h-100 p-3 position-relative">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-info-emphasis">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                                <h5 class="card-title mb-0 fw-bold">ติดตามการส่ง ERP</h5>
+                            </div>
+                            <p class="card-text text-muted small mb-3">ตรวจสอบคิวการซิงค์ข้อมูลไป ERP ประวัติการส่งซ้ำ และเลขอ้างอิงการจ่ายเงิน</p>
+                            <a asp-controller="ErpMonitoring" asp-action="Index" class="btn btn-outline-info text-dark btn-sm stretched-link fw-semibold">
+                                เปิดหน้าติดตาม ERP &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
             }
             @if (isAdmin)
             {
