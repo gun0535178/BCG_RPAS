@@ -83,14 +83,21 @@
                         <label class="form-label fw-semibold" for="periodStartDate">
                             วันเริ่มต้นงวด <span class="text-danger">*</span>
                         </label>
-                        <input type="date" class="form-control" id="periodStartDate" required />
+                        <input type="text" class="form-control bg-white" id="periodStartDate" placeholder="dd/MM/yyyy" required />
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" for="periodEndDate">
                             วันสิ้นสุดงวด <span class="text-danger">*</span>
                         </label>
-                        <input type="date" class="form-control" id="periodEndDate" required />
+                        <input type="text" class="form-control bg-white" id="periodEndDate" placeholder="dd/MM/yyyy" required />
+                    </div>
+
+                    <div class="col-12 d-none" id="periodDurationBox">
+                        <div class="px-3 py-2 rounded-3 bg-success-subtle text-success small fw-semibold d-flex align-items-center justify-content-between">
+                            <span>ระยะเวลางวดเช่า: <strong id="periodDurationText" class="fs-6 ms-1"></strong></span>
+                            <span id="periodTotalDaysText" class="badge bg-white text-success border"></span>
+                        </div>
                     </div>
 
                     <div class="col-md-6">
@@ -212,7 +219,7 @@
                 contractsList = masters.contracts || [];
                 let contractOptions = '<option value="">-- เลือกสัญญาเช่า --</option>';
                 contractsList.forEach(c => {
-                    contractOptions += `<option value="${c.id}">${c.contractNumber} (${c.vendorName || '-'})</option>`;
+                    contractOptions += `<option value="${c.id}">${c.contractNumber}</option>`;
                 });
                 $('#contractSelect').html(contractOptions);
 
@@ -239,10 +246,18 @@
                 $('#costCenterSelect').val(data.costCenterId);
 
                 if (data.periodStartDate) {
-                    $('#periodStartDate').val(data.periodStartDate.substring(0, 10));
+                    const startIso = data.periodStartDate.substring(0, 10);
+                    $('#periodStartDate').val(startIso);
+                    if ($('#periodStartDate')[0]._flatpickr) {
+                        $('#periodStartDate')[0]._flatpickr.setDate(startIso, false);
+                    }
                 }
                 if (data.periodEndDate) {
-                    $('#periodEndDate').val(data.periodEndDate.substring(0, 10));
+                    const endIso = data.periodEndDate.substring(0, 10);
+                    $('#periodEndDate').val(endIso);
+                    if ($('#periodEndDate')[0]._flatpickr) {
+                        $('#periodEndDate')[0]._flatpickr.setDate(endIso, false);
+                    }
                 }
 
                 $('#amountInput').val(data.amount);
@@ -251,6 +266,7 @@
 
                 attachmentsList = data.attachmentFileNames || [];
                 renderAttachments();
+                calculatePeriodDuration();
                 calculateFinancials();
 
                 // Status Badge in Header
@@ -269,6 +285,77 @@
                     $('#rentalTypeNameInput').val('');
                 }
             });
+
+            if (window.flatpickr) {
+                flatpickr('#periodStartDate, #periodEndDate', {
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd/m/Y',
+                    allowInput: false,
+                    onChange: function () {
+                        calculatePeriodDuration();
+                    }
+                });
+            }
+
+            $('#periodStartDate, #periodEndDate').on('change input', function () {
+                calculatePeriodDuration();
+            });
+
+            function calculatePeriodDuration() {
+                const startVal = $('#periodStartDate').val();
+                const endVal = $('#periodEndDate').val();
+                const $box = $('#periodDurationBox');
+                const $text = $('#periodDurationText');
+                const $daysBadge = $('#periodTotalDaysText');
+
+                if (!startVal || !endVal) {
+                    $box.addClass('d-none');
+                    return;
+                }
+
+                const [sy, sm, sd] = startVal.split('-').map(Number);
+                const [ey, em, ed] = endVal.split('-').map(Number);
+
+                const startDate = new Date(Date.UTC(sy, sm - 1, sd));
+                const endDate = new Date(Date.UTC(ey, em - 1, ed));
+
+                if (endDate < startDate) {
+                    $box.removeClass('d-none')
+                        .find('> div')
+                        .removeClass('bg-success-subtle text-success')
+                        .addClass('bg-danger-subtle text-danger');
+                    $text.text('วันสิ้นสุดงวดต้องไม่ก่อนวันเริ่มต้นงวด');
+                    $daysBadge.addClass('d-none');
+                    return;
+                }
+
+                const endExclusive = new Date(Date.UTC(ey, em - 1, ed + 1));
+                const totalDays = Math.round((endExclusive - startDate) / (1000 * 60 * 60 * 24));
+
+                let years = endExclusive.getUTCFullYear() - startDate.getUTCFullYear();
+                let months = endExclusive.getUTCMonth() - startDate.getUTCMonth();
+                let days = endExclusive.getUTCDate() - startDate.getUTCDate();
+
+                if (days < 0) {
+                    months -= 1;
+                    const prevMonthDays = new Date(Date.UTC(endExclusive.getUTCFullYear(), endExclusive.getUTCMonth(), 0)).getUTCDate();
+                    days += prevMonthDays;
+                }
+
+                if (months < 0) {
+                    years -= 1;
+                    months += 12;
+                }
+
+                $box.removeClass('d-none')
+                    .find('> div')
+                    .removeClass('bg-danger-subtle text-danger')
+                    .addClass('bg-success-subtle text-success');
+
+                $text.text(`${years} ปี ${months} เดือน ${days} วัน`);
+                $daysBadge.removeClass('d-none').text(`รวม ${totalDays.toLocaleString('th-TH')} วัน`);
+            }
 
             $('#amountInput, #vatRateInput').on('input', function () {
                 calculateFinancials();
