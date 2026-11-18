@@ -13,7 +13,7 @@
             กลับไปยังรายการคำขอ
         </a>
         <h2 class="fw-bold mb-1" style="color: #0F5132;">สร้างคำขอค่าเช่าใหม่</h2>
-        <p class="text-muted">กรอกรายละเอียดสัญญา ข้อมูลการเงิน และเอกสารอ้างอิงเพื่อขออนุมัติ</p>
+        <p class="text-muted">กรอกรายละเอียดสัญญา ข้อมูลการเงิน และอัปโหลดเอกสารอ้างอิงเพื่อขออนุมัติ</p>
     </div>
 
     <!-- Alert Notification Container -->
@@ -147,21 +147,20 @@
             </div>
             <div class="card-body p-4">
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">
-                        ชื่อไฟล์เอกสารแนบ <span class="text-danger">*</span>
+                    <label class="form-label fw-semibold" for="pdfFileInput">
+                        อัปโหลดไฟล์เอกสารแนบ (เฉพาะไฟล์ PDF) <span class="text-danger">*</span>
                     </label>
-                    <p class="text-muted small mb-2">ระบุชื่อไฟล์เอกสาร เช่น ใบแจ้งหนี้ สำเนาสัญญา (อย่างน้อย 1 รายการเมื่อส่งอนุมัติ)</p>
-                    
-                    <div class="input-group mb-2">
-                        <input type="text" id="newAttachmentInput" class="form-control" placeholder="เช่น ใบแจ้งหนี้_พย_2026.pdf หรือ สัญญาเช่า.pdf" />
-                        <button type="button" id="btnAddAttachment" class="btn btn-outline-success px-3">
-                            + เพิ่มเอกสาร
-                        </button>
+                    <p class="text-muted small mb-2">
+                        เลือกไฟล์เอกสาร เช่น ใบแจ้งหนี้ หรือสำเนาสัญญา (รองรับเฉพาะไฟล์ <code>.pdf</code> ขนาดไม่เกิน 15 MB ต่อไฟล์ ระบบจะตั้งชื่อไฟล์เป็น <code>YYYYMMDD_HHMMSSfff.pdf</code> อัตโนมัติเมื่อบันทึก)
+                    </p>
+
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                        <input type="file" id="pdfFileInput" accept=".pdf,application/pdf" multiple class="form-control" style="max-width: 460px;" />
                     </div>
 
                     <!-- File list container -->
                     <div id="attachmentsContainer" class="d-flex flex-wrap gap-2 pt-1">
-                        <span class="text-muted small italic" id="emptyAttachmentNote">ยังไม่มีเอกสารแนบ</span>
+                        <span class="text-muted small" id="emptyAttachmentNote">ยังไม่ได้เลือกไฟล์เอกสารแนบ</span>
                     </div>
                 </div>
 
@@ -193,7 +192,7 @@
     <script>
         $(document).ready(function () {
             let contractsList = [];
-            let attachmentsList = [];
+            let pendingFiles = []; // Array of File objects selected by user
 
             // 1. Load Master Data
             $.ajax({
@@ -364,57 +363,50 @@
                 }
             }
 
-            // 4. Attachments Tag Management
-            $('#btnAddAttachment').on('click', function () {
-                addAttachmentFromInput();
-            });
-
-            $('#newAttachmentInput').on('keypress', function (e) {
-                if (e.which === 13) {
-                    e.preventDefault();
-                    addAttachmentFromInput();
+            // 4. PDF File Selection Management
+            $('#pdfFileInput').on('change', function () {
+                const selected = Array.from(this.files || []);
+                for (const file of selected) {
+                    if (!file.name.toLowerCase().endsWith('.pdf')) {
+                        alert(`อนุญาตเฉพาะไฟล์ .pdf เท่านั้น (${file.name})`);
+                        continue;
+                    }
+                    if (file.size > 15 * 1024 * 1024) {
+                        alert(`ไฟล์ ${file.name} มีขนาดเกิน 15 MB`);
+                        continue;
+                    }
+                    pendingFiles.push(file);
                 }
-            });
-
-            function addAttachmentFromInput() {
-                const val = $.trim($('#newAttachmentInput').val());
-                if (!val) return;
-
-                if (attachmentsList.includes(val)) {
-                    alert('มีชื่อไฟล์นี้ในรายการแล้ว');
-                    return;
-                }
-
-                attachmentsList.push(val);
-                $('#newAttachmentInput').val('');
+                this.value = '';
                 renderAttachments();
-            }
+            });
 
             function renderAttachments() {
                 const $container = $('#attachmentsContainer');
-                if (attachmentsList.length === 0) {
-                    $container.html('<span class="text-muted small italic" id="emptyAttachmentNote">ยังไม่มีเอกสารแนบ</span>');
+                if (pendingFiles.length === 0) {
+                    $container.html('<span class="text-muted small" id="emptyAttachmentNote">ยังไม่ได้เลือกไฟล์เอกสารแนบ</span>');
                     return;
                 }
 
                 let html = '';
-                attachmentsList.forEach((file, idx) => {
+                pendingFiles.forEach((file, idx) => {
+                    const sizeKb = (file.size / 1024).toFixed(1);
                     html += `
-                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
-                            ${file}
-                            <button type="button" class="btn-close btn-close-sm" style="font-size: 0.65rem;" onclick="removeAttachment(${idx})"></button>
+                            <span>${file.name} <small class="text-muted">(${sizeKb} KB - รออัปโหลด)</small></span>
+                            <button type="button" class="btn-close btn-close-sm" style="font-size: 0.65rem;" onclick="removePendingFile(${idx})"></button>
                         </span>
                     `;
                 });
                 $container.html(html);
             }
 
-            window.removeAttachment = function (index) {
-                attachmentsList.splice(index, 1);
+            window.removePendingFile = function (index) {
+                pendingFiles.splice(index, 1);
                 renderAttachments();
             };
 
@@ -442,8 +434,8 @@
                     showAlert('danger', 'ยอดเงินก่อน VAT ต้องมากกว่า 0');
                     return;
                 }
-                if (attachmentsList.length === 0) {
-                    showAlert('danger', 'กรุณาระบุชื่อไฟล์เอกสารแนบอย่างน้อย 1 รายการก่อนส่งอนุมัติ');
+                if (pendingFiles.length === 0) {
+                    showAlert('danger', 'กรุณาเลือกไฟล์เอกสารแนบ PDF อย่างน้อย 1 ไฟล์ก่อนส่งอนุมัติ');
                     return;
                 }
 
@@ -454,23 +446,24 @@
                 saveDraft(true);
             });
 
-            function saveDraft(isSubmitAfter) {
-                const payload = {
+            async function saveDraft(isSubmitAfter) {
+                const selectedContractId = $('#contractSelect').val() ? parseInt($('#contractSelect').val()) : null;
+                const selectedContract = contractsList.find(c => c.id === selectedContractId);
+                const contractNumber = selectedContract ? selectedContract.contractNumber : null;
+
+                const basePayload = {
                     id: 0,
-                    contractId: $('#contractSelect').val() ? parseInt($('#contractSelect').val()) : null,
+                    contractId: selectedContractId,
                     costCenterId: $('#costCenterSelect').val() ? parseInt($('#costCenterSelect').val()) : null,
                     periodStartDate: $('#periodStartDate').val() || null,
                     periodEndDate: $('#periodEndDate').val() || null,
                     amount: $('#amountInput').val() ? parseFloat($('#amountInput').val()) : null,
                     vatRate: $('#vatRateInput').val() ? parseFloat($('#vatRateInput').val()) : null,
                     notes: $.trim($('#notesInput').val()) || null,
-                    attachmentFileNames: attachmentsList
+                    attachmentFileNames: []
                 };
 
-                const $btnSave = $('#btnSaveDraft');
-                const $btnSubmit = $('#btnSubmitRequest');
-                $btnSave.prop('disabled', true);
-                $btnSubmit.prop('disabled', true);
+                $('#btnSaveDraft, #btnSubmitRequest').prop('disabled', true);
 
                 if (isSubmitAfter) {
                     $('#btnSubmitText').text('กำลังประมวลผลคำขอ...');
@@ -478,57 +471,83 @@
                     $('#btnSaveDraftText').text('กำลังบันทึกร่าง...');
                 }
 
-                $.ajax({
-                    url: '@Url.Action("SaveDraft", "RentalRequests")',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(payload),
-                    success: function (res) {
-                        const newId = res.id;
-                        const version = res.concurrencyVersion;
+                try {
+                    // Step 1: สร้างใบคำขอเพื่อรับ Request ID
+                    const createRes = await $.ajax({
+                        url: '@Url.Action("SaveDraft", "RentalRequests")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(basePayload)
+                    });
 
-                        if (isSubmitAfter) {
-                            submitRequest(newId, version);
-                        } else {
-                            showAlert('success', 'บันทึกฉบับร่างเรียบร้อยแล้ว');
-                            setTimeout(function () {
-                                window.location.href = `@Url.Action("Details", "RentalRequests")/${newId}`;
-                            }, 800);
+                    const newId = createRes.id;
+                    let currentVersion = createRes.concurrencyVersion;
+                    let uploadedNames = [];
+
+                    // Step 2: หากมีไฟล์ PDF ที่เลือกไว้ ให้อัปโหลดไปเก็บที่ Attachment/<เลขสัญญา หรือ Temp>/<id คำขอ>/YYYYMMDD_HHmmssfff.pdf
+                    if (pendingFiles.length > 0) {
+                        const formData = new FormData();
+                        formData.append('requestId', newId);
+                        if (contractNumber) {
+                            formData.append('contractNumber', contractNumber);
                         }
-                    },
-                    error: function (xhr) {
-                        const err = xhr.responseJSON && xhr.responseJSON.detail
-                            ? xhr.responseJSON.detail
-                            : 'เกิดข้อผิดพลาดในการบันทึกร่าง';
-                        showAlert('danger', err);
-                        resetButtons();
-                    }
-                });
-            }
+                        pendingFiles.forEach(f => formData.append('files', f));
 
-            function submitRequest(requestId, version) {
-                $.ajax({
-                    url: `@Url.Action("Submit", "RentalRequests")/${requestId}`,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        expectedConcurrencyVersion: version,
-                        attachmentFileNames: attachmentsList
-                    }),
-                    success: function () {
-                        showAlert('success', 'ส่งคำขออนุมัติสำเร็จ! กำลังนำไปยังหน้ารายละเอียด...');
-                        setTimeout(function () {
-                            window.location.href = `@Url.Action("Details", "RentalRequests")/${requestId}`;
-                        }, 800);
-                    },
-                    error: function (xhr) {
-                        const err = xhr.responseJSON && xhr.responseJSON.detail
-                            ? xhr.responseJSON.detail
-                            : 'บันทึกร่างแล้ว แต่ส่งอนุมัติไม่สำเร็จ กรุณากดส่งอนุมัติอีกครั้งในหน้ารายละเอียด';
-                        showAlert('danger', err);
-                        resetButtons();
+                        const uploadRes = await $.ajax({
+                            url: '@Url.Action("UploadAttachments", "RentalRequests")',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false
+                        });
+
+                        uploadedNames = uploadRes.fileNames || [];
+
+                        // อัปเดตรายชื่อไฟล์จริงลงฐานข้อมูลของใบคำขอ
+                        const updateRes = await $.ajax({
+                            url: '@Url.Action("SaveDraft", "RentalRequests")',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                ...basePayload,
+                                id: newId,
+                                expectedConcurrencyVersion: currentVersion,
+                                attachmentFileNames: uploadedNames
+                            })
+                        });
+
+                        currentVersion = updateRes.concurrencyVersion;
                     }
-                });
+
+                    // Step 3: หากเป็นการกดส่งอนุมัติ ให้ส่ง Submit ต่อทันที
+                    if (isSubmitAfter) {
+                        await $.ajax({
+                            url: `@Url.Action("Submit", "RentalRequests")/${newId}`,
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                expectedConcurrencyVersion: currentVersion,
+                                attachmentFileNames: uploadedNames
+                            })
+                        });
+
+                        showAlert('success', 'อัปโหลดเอกสารและส่งคำขออนุมัติสำเร็จ! กำลังนำไปยังหน้ารายละเอียด...');
+                        setTimeout(function () {
+                            window.location.href = `@Url.Action("Details", "RentalRequests")/${newId}`;
+                        }, 800);
+                    } else {
+                        showAlert('success', 'บันทึกฉบับร่างและอัปโหลดไฟล์เรียบร้อยแล้ว');
+                        setTimeout(function () {
+                            window.location.href = `@Url.Action("Details", "RentalRequests")/${newId}`;
+                        }, 800);
+                    }
+                } catch (xhr) {
+                    const err = xhr.responseJSON && xhr.responseJSON.detail
+                        ? xhr.responseJSON.detail
+                        : 'เกิดข้อผิดพลาดในการบันทึกข้อมูลหรืออัปโหลดไฟล์';
+                    showAlert('danger', err);
+                    resetButtons();
+                }
             }
 
             function resetButtons() {

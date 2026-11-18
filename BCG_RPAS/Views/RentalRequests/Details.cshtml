@@ -273,14 +273,16 @@
                 } else {
                     let filesHtml = '';
                     files.forEach(f => {
+                        const contractParam = d.contractNumber ? `&contractNumber=${encodeURIComponent(d.contractNumber)}` : '';
+                        const viewUrl = `@Url.Action("ViewAttachment", "RentalRequests")?requestId=${d.id}&fileName=${encodeURIComponent(f)}${contractParam}`;
                         filesHtml += `
-                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2">
+                            <a href="${viewUrl}" target="_blank" class="badge bg-light text-primary border px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2 text-decoration-none shadow-xs" title="คลิกเพื่อเปิดดูไฟล์ PDF">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                     <polyline points="14 2 14 8 20 8"></polyline>
                                 </svg>
-                                ${f}
-                            </span>
+                                <span class="fw-semibold">${f}</span>
+                            </a>
                         `;
                     });
                     $('#attachmentsListContainer').html(filesHtml);

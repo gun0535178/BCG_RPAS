@@ -17,7 +17,7 @@
             <h2 class="fw-bold mb-0" style="color: #0F5132;">แก้ไขคำขอค่าเช่า #@reqId</h2>
             <span id="headerStatusBadge" class="badge bg-secondary">กำลังโหลด...</span>
         </div>
-        <p class="text-muted mt-1 mb-0">ปรับปรุงข้อมูลสัญญา งวดเวลา จำนวนเงิน หรือเอกสารแนบก่อนส่งอนุมัติ</p>
+        <p class="text-muted mt-1 mb-0">ปรับปรุงข้อมูลสัญญา งวดเวลา จำนวนเงิน หรืออัปโหลดไฟล์เอกสารแนบเพิ่มเติมก่อนส่งอนุมัติ</p>
     </div>
 
     <!-- Alert Notification Container -->
@@ -151,14 +151,14 @@
             </div>
             <div class="card-body p-4">
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">
-                        ชื่อไฟล์เอกสารแนบ <span class="text-danger">*</span>
+                    <label class="form-label fw-semibold" for="pdfFileInput">
+                        อัปโหลดไฟล์เอกสารแนบเพิ่มเติม (เฉพาะไฟล์ PDF) <span class="text-danger">*</span>
                     </label>
-                    <div class="input-group mb-2">
-                        <input type="text" id="newAttachmentInput" class="form-control" placeholder="เช่น ใบแจ้งหนี้_พย_2026.pdf" />
-                        <button type="button" id="btnAddAttachment" class="btn btn-outline-success px-3">
-                            + เพิ่มเอกสาร
-                        </button>
+                    <p class="text-muted small mb-2">
+                        รองรับเฉพาะไฟล์ <code>.pdf</code> ขนาดไม่เกิน 15 MB ต่อไฟล์ (หากเปลี่ยนเลขที่สัญญา ระบบจะย้ายไฟล์เดิมไปยังโฟลเดอร์สัญญาใหม่ให้อัตโนมัติ)
+                    </p>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                        <input type="file" id="pdfFileInput" accept=".pdf,application/pdf" multiple class="form-control" style="max-width: 460px;" />
                     </div>
                     <div id="attachmentsContainer" class="d-flex flex-wrap gap-2 pt-1"></div>
                 </div>
@@ -192,7 +192,8 @@
         $(document).ready(function () {
             const reqId = @reqId;
             let contractsList = [];
-            let attachmentsList = [];
+            let existingAttachments = []; // Already saved file names on server
+            let pendingFiles = [];        // Newly selected File objects to upload
             let currentRequestData = null;
 
             // 1. Load Master Data & Existing Request concurrently
@@ -286,7 +287,8 @@
                 $('#vatRateInput').val(data.vatRate);
                 $('#notesInput').val(data.notes || '');
 
-                attachmentsList = data.attachmentFileNames || [];
+                existingAttachments = data.attachmentFileNames || [];
+                pendingFiles = [];
                 renderAttachments();
                 calculatePeriodDuration();
                 calculateFinancials();
@@ -409,56 +411,73 @@
                 }
             }
 
-            $('#btnAddAttachment').on('click', function () {
-                addAttachmentFromInput();
-            });
-
-            $('#newAttachmentInput').on('keypress', function (e) {
-                if (e.which === 13) {
-                    e.preventDefault();
-                    addAttachmentFromInput();
+            // PDF File Selection
+            $('#pdfFileInput').on('change', function () {
+                const selected = Array.from(this.files || []);
+                for (const file of selected) {
+                    if (!file.name.toLowerCase().endsWith('.pdf')) {
+                        alert(`อนุญาตเฉพาะไฟล์ .pdf เท่านั้น (${file.name})`);
+                        continue;
+                    }
+                    if (file.size > 15 * 1024 * 1024) {
+                        alert(`ไฟล์ ${file.name} มีขนาดเกิน 15 MB`);
+                        continue;
+                    }
+                    pendingFiles.push(file);
                 }
-            });
-
-            function addAttachmentFromInput() {
-                const val = $.trim($('#newAttachmentInput').val());
-                if (!val) return;
-
-                if (attachmentsList.includes(val)) {
-                    alert('มีชื่อไฟล์นี้ในรายการแล้ว');
-                    return;
-                }
-
-                attachmentsList.push(val);
-                $('#newAttachmentInput').val('');
+                this.value = '';
                 renderAttachments();
-            }
+            });
 
             function renderAttachments() {
                 const $container = $('#attachmentsContainer');
-                if (attachmentsList.length === 0) {
-                    $container.html('<span class="text-muted small italic">ยังไม่มีเอกสารแนบ</span>');
+                if (existingAttachments.length === 0 && pendingFiles.length === 0) {
+                    $container.html('<span class="text-muted small">ยังไม่มีไฟล์เอกสารแนบ</span>');
                     return;
                 }
 
                 let html = '';
-                attachmentsList.forEach((file, idx) => {
+
+                // 1. Existing uploaded PDFs
+                existingAttachments.forEach((fileName, idx) => {
+                    const viewUrl = `@Url.Action("ViewAttachment", "RentalRequests")?requestId=${reqId}&fileName=${encodeURIComponent(fileName)}`;
                     html += `
                         <span class="badge bg-light text-dark border px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
-                            ${file}
-                            <button type="button" class="btn-close btn-close-sm" style="font-size: 0.65rem;" onclick="removeAttachment(${idx})"></button>
+                            <a href="${viewUrl}" target="_blank" class="text-decoration-none text-primary fw-semibold" title="คลิกเพื่อเปิดดูไฟล์ PDF">${fileName}</a>
+                            <button type="button" class="btn-close btn-close-sm" style="font-size: 0.65rem;" onclick="removeExistingAttachment(${idx})"></button>
                         </span>
                     `;
                 });
+
+                // 2. Newly selected PDFs waiting to be uploaded
+                pendingFiles.forEach((file, idx) => {
+                    const sizeKb = (file.size / 1024).toFixed(1);
+                    html += `
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <span>${file.name} <small class="text-muted">(${sizeKb} KB - รออัปโหลดใหม่)</small></span>
+                            <button type="button" class="btn-close btn-close-sm" style="font-size: 0.65rem;" onclick="removePendingFile(${idx})"></button>
+                        </span>
+                    `;
+                });
+
                 $container.html(html);
             }
 
-            window.removeAttachment = function (index) {
-                attachmentsList.splice(index, 1);
+            window.removeExistingAttachment = function (index) {
+                existingAttachments.splice(index, 1);
+                renderAttachments();
+            };
+
+            window.removePendingFile = function (index) {
+                pendingFiles.splice(index, 1);
                 renderAttachments();
             };
 
@@ -484,8 +503,8 @@
                     showAlert('danger', 'ยอดเงินก่อน VAT ต้องมากกว่า 0');
                     return;
                 }
-                if (attachmentsList.length === 0) {
-                    showAlert('danger', 'กรุณาระบุชื่อไฟล์เอกสารแนบอย่างน้อย 1 รายการก่อนส่งอนุมัติ');
+                if (existingAttachments.length === 0 && pendingFiles.length === 0) {
+                    showAlert('danger', 'กรุณาอัปโหลดไฟล์เอกสารแนบ PDF อย่างน้อย 1 ไฟล์ก่อนส่งอนุมัติ');
                     return;
                 }
 
@@ -496,21 +515,11 @@
                 saveChanges(true);
             });
 
-            function saveChanges(isSubmitAfter) {
+            async function saveChanges(isSubmitAfter) {
                 const expectedVersion = parseInt($('#concurrencyVersionInput').val());
-
-                const payload = {
-                    id: reqId,
-                    expectedConcurrencyVersion: expectedVersion,
-                    contractId: $('#contractSelect').val() ? parseInt($('#contractSelect').val()) : null,
-                    costCenterId: $('#costCenterSelect').val() ? parseInt($('#costCenterSelect').val()) : null,
-                    periodStartDate: $('#periodStartDate').val() || null,
-                    periodEndDate: $('#periodEndDate').val() || null,
-                    amount: $('#amountInput').val() ? parseFloat($('#amountInput').val()) : null,
-                    vatRate: $('#vatRateInput').val() ? parseFloat($('#vatRateInput').val()) : null,
-                    notes: $.trim($('#notesInput').val()) || null,
-                    attachmentFileNames: attachmentsList
-                };
+                const selectedContractId = $('#contractSelect').val() ? parseInt($('#contractSelect').val()) : null;
+                const selectedContract = contractsList.find(c => c.id === selectedContractId);
+                const contractNumber = selectedContract ? selectedContract.contractNumber : null;
 
                 $('#btnSaveDraft, #btnSubmitRequest').prop('disabled', true);
 
@@ -520,57 +529,83 @@
                     $('#btnSaveDraftText').text('กำลังบันทึก...');
                 }
 
-                $.ajax({
-                    url: '@Url.Action("SaveDraft", "RentalRequests")',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(payload),
-                    success: function (res) {
-                        const updatedVersion = res.concurrencyVersion;
-                        $('#concurrencyVersionInput').val(updatedVersion);
+                try {
+                    let newlyUploadedNames = [];
 
-                        if (isSubmitAfter) {
-                            submitRequest(reqId, updatedVersion);
-                        } else {
-                            showAlert('success', 'บันทึกการแก้ไขเรียบร้อยแล้ว');
-                            setTimeout(function () {
-                                window.location.href = `@Url.Action("Details", "RentalRequests")/${reqId}`;
-                            }, 800);
+                    // 1. หากมีไฟล์ PDF ที่เลือกเพิ่มใหม่ ให้อัปโหลดไปเก็บที่เซิร์ฟเวอร์ก่อน
+                    if (pendingFiles.length > 0) {
+                        const formData = new FormData();
+                        formData.append('requestId', reqId);
+                        if (contractNumber) {
+                            formData.append('contractNumber', contractNumber);
                         }
-                    },
-                    error: function (xhr) {
-                        const err = xhr.responseJSON && xhr.responseJSON.detail
-                            ? xhr.responseJSON.detail
-                            : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
-                        showAlert('danger', err);
-                        resetButtons();
-                    }
-                });
-            }
+                        pendingFiles.forEach(f => formData.append('files', f));
 
-            function submitRequest(requestId, version) {
-                $.ajax({
-                    url: `@Url.Action("Submit", "RentalRequests")/${requestId}`,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        expectedConcurrencyVersion: version,
-                        attachmentFileNames: attachmentsList
-                    }),
-                    success: function () {
+                        const uploadRes = await $.ajax({
+                            url: '@Url.Action("UploadAttachments", "RentalRequests")',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false
+                        });
+
+                        newlyUploadedNames = uploadRes.fileNames || [];
+                    }
+
+                    const finalAttachmentNames = [...existingAttachments, ...newlyUploadedNames];
+
+                    const payload = {
+                        id: reqId,
+                        expectedConcurrencyVersion: expectedVersion,
+                        contractId: selectedContractId,
+                        costCenterId: $('#costCenterSelect').val() ? parseInt($('#costCenterSelect').val()) : null,
+                        periodStartDate: $('#periodStartDate').val() || null,
+                        periodEndDate: $('#periodEndDate').val() || null,
+                        amount: $('#amountInput').val() ? parseFloat($('#amountInput').val()) : null,
+                        vatRate: $('#vatRateInput').val() ? parseFloat($('#vatRateInput').val()) : null,
+                        notes: $.trim($('#notesInput').val()) || null,
+                        attachmentFileNames: finalAttachmentNames
+                    };
+
+                    // 2. บันทึกข้อมูลร่าง (พร้อมย้ายโฟลเดอร์จาก Temp -> <เลขสัญญา> อัตโนมัติที่ฝั่ง Controller)
+                    const saveRes = await $.ajax({
+                        url: '@Url.Action("SaveDraft", "RentalRequests")',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(payload)
+                    });
+
+                    const updatedVersion = saveRes.concurrencyVersion;
+                    $('#concurrencyVersionInput').val(updatedVersion);
+
+                    if (isSubmitAfter) {
+                        await $.ajax({
+                            url: `@Url.Action("Submit", "RentalRequests")/${reqId}`,
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                expectedConcurrencyVersion: updatedVersion,
+                                attachmentFileNames: finalAttachmentNames
+                            })
+                        });
+
                         showAlert('success', 'ส่งคำขออนุมัติสำเร็จ!');
                         setTimeout(function () {
-                            window.location.href = `@Url.Action("Details", "RentalRequests")/${requestId}`;
+                            window.location.href = `@Url.Action("Details", "RentalRequests")/${reqId}`;
                         }, 800);
-                    },
-                    error: function (xhr) {
-                        const err = xhr.responseJSON && xhr.responseJSON.detail
-                            ? xhr.responseJSON.detail
-                            : 'บันทึกข้อมูลแล้ว แต่ส่งอนุมัติไม่สำเร็จ';
-                        showAlert('danger', err);
-                        resetButtons();
+                    } else {
+                        showAlert('success', 'บันทึกการแก้ไขเรียบร้อยแล้ว');
+                        setTimeout(function () {
+                            window.location.href = `@Url.Action("Details", "RentalRequests")/${reqId}`;
+                        }, 800);
                     }
-                });
+                } catch (xhr) {
+                    const err = xhr.responseJSON && xhr.responseJSON.detail
+                        ? xhr.responseJSON.detail
+                        : 'เกิดข้อผิดพลาดในการบันทึกข้อมูลหรืออัปโหลดไฟล์';
+                    showAlert('danger', err);
+                    resetButtons();
+                }
             }
 
             function resetButtons() {
