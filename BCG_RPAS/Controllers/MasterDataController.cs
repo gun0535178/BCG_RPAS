@@ -20,36 +20,47 @@ namespace BCG_RPAS.Controllers
             _logger = logger;
         }
 
+        private bool IsRequesterRole()
+        {
+            var roleCode = User.FindFirst("RoleCode")?.Value;
+            return string.Equals(roleCode, "REQUESTER", StringComparison.OrdinalIgnoreCase);
+        }
+
         [HttpGet]
         public IActionResult Index()
         {
+            if (IsRequesterRole())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             return View();
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
+            if (IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "พนักงานผู้ขออนุมัติ (Requester) ไม่มีสิทธิ์จัดการข้อมูลหลัก" });
+            }
+
             try
             {
                 var client = CreateApiClient();
 
-                var contractsTask = client.GetAsync("/api/master/contract?includeInactive=true", cancellationToken);
-                var vendorsTask = client.GetAsync("/api/master/vendor?includeInactive=true", cancellationToken);
-                var costCentersTask = client.GetAsync("/api/master/cost-center?includeInactive=true", cancellationToken);
-                var rentalTypesTask = client.GetAsync("/api/master/rental-type?includeInactive=true", cancellationToken);
-                var rolesTask = client.GetAsync("/api/master/role?includeInactive=true", cancellationToken);
-                var statusesTask = client.GetAsync("/api/master/request-status?includeInactive=true", cancellationToken);
+                var contractsTask = client.GetAsync("/api/master/contract", cancellationToken);
+                var vendorsTask = client.GetAsync("/api/master/vendor", cancellationToken);
+                var costCentersTask = client.GetAsync("/api/master/cost-center", cancellationToken);
+                var rentalTypesTask = client.GetAsync("/api/master/rental-type", cancellationToken);
 
-                await Task.WhenAll(contractsTask, vendorsTask, costCentersTask, rentalTypesTask, rolesTask, statusesTask);
+                await Task.WhenAll(contractsTask, vendorsTask, costCentersTask, rentalTypesTask);
 
                 var responses = new[]
                 {
                     await contractsTask,
                     await vendorsTask,
                     await costCentersTask,
-                    await rentalTypesTask,
-                    await rolesTask,
-                    await statusesTask
+                    await rentalTypesTask
                 };
 
                 if (responses.Any(r => r.StatusCode == System.Net.HttpStatusCode.Unauthorized))
@@ -66,17 +77,13 @@ namespace BCG_RPAS.Controllers
                 var vendors = JsonSerializer.Deserialize<JsonElement>(await responses[1].Content.ReadAsStringAsync(cancellationToken));
                 var costCenters = JsonSerializer.Deserialize<JsonElement>(await responses[2].Content.ReadAsStringAsync(cancellationToken));
                 var rentalTypes = JsonSerializer.Deserialize<JsonElement>(await responses[3].Content.ReadAsStringAsync(cancellationToken));
-                var roles = JsonSerializer.Deserialize<JsonElement>(await responses[4].Content.ReadAsStringAsync(cancellationToken));
-                var statuses = JsonSerializer.Deserialize<JsonElement>(await responses[5].Content.ReadAsStringAsync(cancellationToken));
 
                 return Json(new
                 {
                     contracts,
                     vendors,
                     costCenters,
-                    rentalTypes,
-                    roles,
-                    statuses
+                    rentalTypes
                 });
             }
             catch (Exception ex)
@@ -102,14 +109,6 @@ namespace BCG_RPAS.Controllers
         public async Task<IActionResult> SaveRentalType([FromBody] JsonElement payload, CancellationToken cancellationToken)
             => await ForwardPostAsync("/api/master/rental-type", payload, cancellationToken);
 
-        [HttpPost]
-        public async Task<IActionResult> SaveRole([FromBody] JsonElement payload, CancellationToken cancellationToken)
-            => await ForwardPostAsync("/api/master/role", payload, cancellationToken);
-
-        [HttpPost]
-        public async Task<IActionResult> SaveStatus([FromBody] JsonElement payload, CancellationToken cancellationToken)
-            => await ForwardPostAsync("/api/master/request-status", payload, cancellationToken);
-
         private HttpClient CreateApiClient()
         {
             var client = _httpClientFactory.CreateClient("RPAS_API");
@@ -125,6 +124,11 @@ namespace BCG_RPAS.Controllers
 
         private async Task<IActionResult> ForwardPostAsync(string endpoint, JsonElement payload, CancellationToken cancellationToken)
         {
+            if (IsRequesterRole())
+            {
+                return StatusCode(403, new { detail = "พนักงานผู้ขออนุมัติ (Requester) ไม่มีสิทธิ์จัดการข้อมูลหลัก" });
+            }
+
             try
             {
                 var client = CreateApiClient();

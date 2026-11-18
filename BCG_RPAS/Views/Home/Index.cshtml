@@ -7,18 +7,20 @@
     {
         var displayName = User.FindFirst("DisplayName")?.Value ?? User.Identity.Name;
         var roleName = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "User";
+        var roleCode = User.FindFirst("RoleCode")?.Value ?? "";
+        var canManageMaster = !string.Equals(roleCode, "REQUESTER", StringComparison.OrdinalIgnoreCase);
 
         <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
             <div class="card-body p-4 p-md-5" style="background: linear-gradient(135deg, #0F5132 0%, #198754 100%); color: white;">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
+                        <h1 class="display-6 fw-bold mb-1">ยินดีต้อนรับ, @displayName</h1>
                         <span class="badge bg-white text-success px-3 py-2 rounded-pill fw-bold mb-2">
-                            @roleName Portal
+                            @roleName 
                         </span>
-                        <h1 class="display-6 fw-bold mb-1">ยินดีต้อนรับ, @displayName 👋</h1>
                         <p class="mb-0 opacity-75">เข้าสู่ระบบ BCG RPAS (Rental Payment &amp; Approval System) สำเร็จ</p>
                     </div>
-                    <div>
+                    @* <div>
                         <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-light text-danger fw-bold shadow-sm px-4 py-2 rounded-3 d-inline-flex align-items-center gap-2">
@@ -30,7 +32,7 @@
                                 ออกจากระบบ (Log Out)
                             </button>
                         </form>
-                    </div>
+                    </div> *@
                 </div>
             </div>
         </div>
@@ -64,20 +66,23 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-3 h-100 p-3 position-relative">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center gap-2 mb-2 text-warning">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                            <h5 class="card-title mb-0 fw-bold">จัดการข้อมูลหลัก (Master)</h5>
+            @if (canManageMaster)
+            {
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 h-100 p-3 position-relative">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-warning">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <h5 class="card-title mb-0 fw-bold">จัดการข้อมูลหลัก</h5>
+                            </div>
+                            <p class="card-text text-muted small mb-3">สัญญา, คู่ค้า, ฝ่าย/แผนก  และประเภทค่าเช่า </p>
+                            <a asp-controller="MasterData" asp-action="Index" class="btn btn-outline-warning text-dark btn-sm stretched-link fw-semibold">
+                                จัดการข้อมูลหลัก &rarr;
+                            </a>
                         </div>
-                        <p class="card-text text-muted small mb-3">สัญญา (Contract), คู่ค้า (Vendor), ฝ่าย/แผนก (Cost Center), ประเภทค่าเช่า, บทบาท และสถานะ</p>
-                        <a asp-controller="MasterData" asp-action="Index" class="btn btn-outline-warning text-dark btn-sm stretched-link fw-semibold">
-                            จัดการข้อมูลหลัก &rarr;
-                        </a>
                     </div>
                 </div>
-            </div>
+            }
         </div>
     }
     else
