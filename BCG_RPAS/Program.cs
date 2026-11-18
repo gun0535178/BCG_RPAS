@@ -1,6 +1,11 @@
+using BCG_RPAS.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// บันทึก _logger ลงไฟล์รายวันในโฟลเดอร์ Logs/
+var webLogDir = Path.Combine(builder.Environment.ContentRootPath, "Logs");
+builder.Logging.AddProvider(new DailyFileLoggerProvider(webLogDir, "web"));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -294,9 +294,12 @@
                 } else {
                     let stepsHtml = '';
                     steps.forEach(s => {
+                        const isSkippedStep = s.status === 'Superseded' || s.status === 'Cancelled';
                         const stepBadge = getStepBadge(s.status);
-                        const stepDate = s.actionDate ? formatDateTime(s.actionDate) : '-';
-                        const reasonHtml = s.reason ? `<div class="mt-1 small text-danger"><strong>เหตุผล:</strong> ${s.reason}</div>` : '';
+                        const stepDate = (!isSkippedStep && s.actionDate) ? formatDateTime(s.actionDate) : '-';
+                        const reasonHtml = (!isSkippedStep && s.reason)
+                            ? `<div class="mt-1 small text-danger"><strong>เหตุผล:</strong> ${s.reason}</div>`
+                            : '';
 
                         stepsHtml += `
                             <div class="col-md-6">
@@ -541,8 +544,8 @@
                     case 'Waiting': return '<span class="badge bg-secondary">รอคิว</span>';
                     case 'Rejected': return '<span class="badge bg-danger">ปฏิเสธ</span>';
                     case 'Returned': return '<span class="badge bg-warning text-dark">ส่งคืน</span>';
-                    case 'Cancelled': return '<span class="badge bg-light text-muted border">ยกเลิก</span>';
-                    case 'Superseded': return '<span class="badge bg-light text-muted">ยกเลิกตามรอบเก่า</span>';
+                    case 'Cancelled': return '<span class="badge bg-light text-muted border">ยังไม่ถึงขั้นตอน</span>';
+                    case 'Superseded': return '<span class="badge bg-light text-muted border">ยังไม่ถึงขั้นตอน</span>';
                     default: return `<span class="badge bg-light text-dark">${status}</span>`;
                 }
             }
