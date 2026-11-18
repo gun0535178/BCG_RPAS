@@ -1,0 +1,436 @@
+@{
+    ViewData["Title"] = "จัดการผู้ใช้งาน";
+    var currentUserId = int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var uid) ? uid : 0;
+}
+
+<div class="container-fluid py-3">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold mb-0" style="color: #0F5132;">จัดการผู้ใช้งาน</h2>
+                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-semibold">เฉพาะผู้ดูแลระบบ</span>
+            </div>
+            <p class="text-muted mb-0 mt-1">สร้างบัญชีผู้ใช้งานใหม่ กำหนดบทบาท แก้ไขข้อมูล หรือเปลี่ยนรหัสผ่าน</p>
+        </div>
+        <div class="d-flex gap-2 flex-shrink-0">
+            <button type="button" id="btnRefresh" class="btn btn-outline-success px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 text-nowrap">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                รีเฟรช
+            </button>
+            <button type="button" id="btnAddUser" class="btn btn-success px-4 py-2 rounded-3 fw-semibold shadow-sm d-inline-flex align-items-center gap-2 text-nowrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                สร้างผู้ใช้งานใหม่
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="pageAlert" class="alert d-none rounded-3 shadow-sm mb-4" role="alert"></div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="bg-light-subtle border-bottom px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div style="max-width: 360px; width: 100%;">
+                <input type="text" id="searchInput" class="form-control form-control-sm bg-white" placeholder="ค้นหาชื่อบัญชีผู้ใช้, ชื่อ-นามสกุล หรืออีเมล..." />
+            </div>
+            <div style="min-width: 220px;">
+                <select id="roleFilterSelect" class="form-select form-select-sm bg-white">
+                    <option value="">-- ทุกบทบาท --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4" style="width: 80px;">ลำดับ</th>
+                            <th>ชื่อบัญชีผู้ใช้</th>
+                            <th>ชื่อ-นามสกุลที่แสดงผล</th>
+                            <th>อีเมล</th>
+                            <th>บทบาท</th>
+                            <th>วันที่สร้าง</th>
+                            <th class="text-center pe-4" style="width: 200px;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">กำลังโหลดข้อมูลผู้ใช้งาน...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create / Edit User -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-success" id="userModalTitle">สร้างผู้ใช้งานใหม่</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <input type="hidden" id="userIdInput" value="0" />
+                <input type="hidden" id="userVersionInput" value="" />
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="userNameInput">ชื่อบัญชีผู้ใช้ <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="userNameInput" placeholder="เช่น somchai01" maxlength="100" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="displayNameInput">ชื่อ-นามสกุลที่แสดงผล <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="displayNameInput" placeholder="เช่น สมชาย ใจดี" maxlength="200" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="emailInput">อีเมล</label>
+                    <input type="email" class="form-control" id="emailInput" placeholder="เช่น somchai@bcg.local" maxlength="254" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="roleSelect">บทบาทผู้ใช้งาน <span class="text-danger">*</span></label>
+                    <select class="form-select" id="roleSelect" required>
+                        <option value="">-- เลือกบทบาท --</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold" id="passwordLabel" for="passwordInput">รหัสผ่าน <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" id="passwordInput" placeholder="กำหนดรหัสผ่าน..." autocomplete="new-password" />
+                    <div class="form-text small text-muted d-none" id="passwordEditHint">เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่านเดิม</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success px-4 fw-semibold" id="btnSaveUser">บันทึกผู้ใช้งาน</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Soft Delete Confirmation -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">ยืนยันการลบผู้ใช้งาน</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="mb-2">คุณต้องการลบผู้ใช้งาน <strong id="deleteUserLabel" class="text-dark"></strong> ออกจากระบบใช่หรือไม่?</p>
+                <p class="small text-muted mb-0">ระบบจะทำการปิดการใช้งานบัญชีนี้โดยไม่ลบประวัติออกจากฐานข้อมูล</p>
+                <input type="hidden" id="deleteUserId" value="0" />
+                <input type="hidden" id="deleteUserVersion" value="" />
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-danger px-4 fw-semibold" id="btnConfirmDelete">ยืนยันการลบ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const currentAdminId = @currentUserId;
+            const state = {
+                search: '',
+                roleFilter: '',
+                users: [],
+                roles: []
+            };
+
+            const alertEl = document.getElementById('pageAlert');
+            let userModalInstance = null;
+            let deleteModalInstance = null;
+
+            function escapeHtml(val) {
+                if (val === null || val === undefined) return '';
+                return String(val)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function formatDate(str) {
+                if (!str) return '-';
+                const d = new Date(str);
+                if (isNaN(d.getTime())) return str;
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const yyyy = d.getFullYear();
+                return `${dd}/${mm}/${yyyy}`;
+            }
+
+            function showAlert(message, type = 'success') {
+                alertEl.className = `alert alert-${type} alert-dismissible fade show rounded-3 shadow-sm mb-4`;
+                alertEl.innerHTML = `
+                    <div>${escapeHtml(message)}</div>
+                    <button type="button" class="btn-close" onclick="this.parentElement.classList.add('d-none')"></button>
+                `;
+            }
+
+            function getRoleBadge(roleId, roleName) {
+                switch (roleId) {
+                    case 1:
+                        return `<span class="badge bg-secondary-subtle text-secondary border px-2 py-1">${escapeHtml(roleName)}</span>`;
+                    case 2:
+                        return `<span class="badge bg-warning-subtle text-warning-emphasis border px-2 py-1">${escapeHtml(roleName)}</span>`;
+                    case 3:
+                        return `<span class="badge bg-info-subtle text-info-emphasis border px-2 py-1">${escapeHtml(roleName)}</span>`;
+                    case 5:
+                        return `<span class="badge bg-danger-subtle text-danger border px-2 py-1">${escapeHtml(roleName)}</span>`;
+                    default:
+                        return `<span class="badge bg-light text-dark border px-2 py-1">${escapeHtml(roleName)}</span>`;
+                }
+            }
+
+            function populateRoleDropdowns() {
+                const filterSelect = document.getElementById('roleFilterSelect');
+                const modalSelect = document.getElementById('roleSelect');
+
+                const currentFilter = filterSelect.value;
+                filterSelect.innerHTML = '<option value="">-- ทุกบทบาท --</option>' +
+                    state.roles.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('');
+                filterSelect.value = currentFilter;
+
+                modalSelect.innerHTML = '<option value="">-- เลือกบทบาท --</option>' +
+                    state.roles.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('');
+            }
+
+            function renderTable() {
+                const tbody = document.getElementById('tableBody');
+                const q = state.search.toLowerCase();
+
+                const filtered = state.users.filter(u => {
+                    if (state.roleFilter && String(u.roleId) !== String(state.roleFilter)) {
+                        return false;
+                    }
+                    if (!q) return true;
+                    return [u.id, u.userName, u.displayName, u.email, u.roleName]
+                        .some(f => f && String(f).toLowerCase().includes(q));
+                });
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map(u => {
+                    const isSelf = u.id === currentAdminId;
+                    const deleteBtn = isSelf
+                        ? `<button type="button" class="btn btn-sm btn-outline-secondary rounded-3 px-3 text-nowrap" disabled title="ไม่สามารถลบบัญชีของตนเองได้">ลบ</button>`
+                        : `<button type="button" class="btn btn-sm btn-outline-danger rounded-3 px-3 text-nowrap" onclick="window.UsersUI.promptDelete(${u.id})">ลบ</button>`;
+
+                    return `
+                        <tr>
+                            <td class="ps-4 fw-semibold text-muted">#${u.id}</td>
+                            <td><code class="fw-bold text-success bg-success-subtle px-2 py-1 rounded">${escapeHtml(u.userName)}</code></td>
+                            <td class="fw-bold text-dark">${escapeHtml(u.displayName)}</td>
+                            <td class="text-muted small">${escapeHtml(u.email || '-')}</td>
+                            <td>${getRoleBadge(u.roleId, u.roleName)}</td>
+                            <td class="small text-muted text-nowrap">${formatDate(u.createDate)}</td>
+                            <td class="text-center pe-4">
+                                <div class="d-inline-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-3 px-3 text-nowrap" onclick="window.UsersUI.openEdit(${u.id})">
+                                        แก้ไข
+                                    </button>
+                                    ${deleteBtn}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            async function loadData() {
+                try {
+                    const res = await fetch('/Users/GetAll', { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถโหลดข้อมูลผู้ใช้งานได้', 'danger');
+                        return;
+                    }
+
+                    state.users = data.users || [];
+                    state.roles = data.roles || [];
+
+                    populateRoleDropdowns();
+                    renderTable();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'danger');
+                }
+            }
+
+            function openCreateModal() {
+                document.getElementById('userModalTitle').textContent = 'สร้างผู้ใช้งานใหม่';
+                document.getElementById('userIdInput').value = '0';
+                document.getElementById('userVersionInput').value = '';
+                document.getElementById('userNameInput').value = '';
+                document.getElementById('displayNameInput').value = '';
+                document.getElementById('emailInput').value = '';
+                document.getElementById('roleSelect').value = '1'; // Default to Requester
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordLabel').innerHTML = 'รหัสผ่าน <span class="text-danger">*</span>';
+                document.getElementById('passwordEditHint').classList.add('d-none');
+
+                userModalInstance.show();
+            }
+
+            window.UsersUI = {
+                openEdit(id) {
+                    const u = state.users.find(x => x.id === id);
+                    if (!u) return;
+
+                    document.getElementById('userModalTitle').textContent = `แก้ไขผู้ใช้งาน #${u.id}`;
+                    document.getElementById('userIdInput').value = u.id;
+                    document.getElementById('userVersionInput').value = u.concurrencyVersion;
+                    document.getElementById('userNameInput').value = u.userName || '';
+                    document.getElementById('displayNameInput').value = u.displayName || '';
+                    document.getElementById('emailInput').value = u.email || '';
+                    document.getElementById('roleSelect').value = String(u.roleId);
+                    document.getElementById('passwordInput').value = '';
+                    document.getElementById('passwordLabel').innerHTML = 'เปลี่ยนรหัสผ่านใหม่';
+                    document.getElementById('passwordEditHint').classList.remove('d-none');
+
+                    userModalInstance.show();
+                },
+
+                promptDelete(id) {
+                    const u = state.users.find(x => x.id === id);
+                    if (!u) return;
+
+                    document.getElementById('deleteUserId').value = u.id;
+                    document.getElementById('deleteUserVersion').value = u.concurrencyVersion;
+                    document.getElementById('deleteUserLabel').textContent = `${u.displayName} (${u.userName})`;
+                    deleteModalInstance.show();
+                }
+            };
+
+            async function saveUser() {
+                const id = parseInt(document.getElementById('userIdInput').value || '0', 10);
+                const versionVal = document.getElementById('userVersionInput').value;
+                const userName = document.getElementById('userNameInput').value.trim();
+                const displayName = document.getElementById('displayNameInput').value.trim();
+                const email = document.getElementById('emailInput').value.trim();
+                const roleId = parseInt(document.getElementById('roleSelect').value || '0', 10);
+                const password = document.getElementById('passwordInput').value;
+
+                if (!userName || !displayName || !roleId) {
+                    showAlert('กรุณากรอกชื่อบัญชีผู้ใช้ ชื่อ-นามสกุล และเลือกบทบาทให้ครบถ้วน', 'warning');
+                    return;
+                }
+
+                if (id === 0 && !password) {
+                    showAlert('กรุณากำหนดรหัสผ่านสำหรับผู้ใช้งานใหม่', 'warning');
+                    return;
+                }
+
+                const payload = {
+                    id,
+                    userName,
+                    displayName,
+                    email: email || null,
+                    roleId,
+                    password: password || null,
+                    expectedConcurrencyVersion: versionVal ? parseInt(versionVal, 10) : null
+                };
+
+                const btn = document.getElementById('btnSaveUser');
+                btn.disabled = true;
+                try {
+                    const res = await fetch('/Users/Save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถบันทึกข้อมูลผู้ใช้งานได้', 'danger');
+                        return;
+                    }
+                    userModalInstance.hide();
+                    showAlert(data.message || 'บันทึกข้อมูลผู้ใช้งานสำเร็จ', 'success');
+                    await loadData();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการบันทึกข้อมูลผู้ใช้งาน', 'danger');
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            async function confirmDelete() {
+                const id = parseInt(document.getElementById('deleteUserId').value || '0', 10);
+                const versionVal = document.getElementById('deleteUserVersion').value;
+                if (!id) return;
+
+                const btn = document.getElementById('btnConfirmDelete');
+                btn.disabled = true;
+                try {
+                    const res = await fetch('/Users/Save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            id,
+                            active: 0,
+                            expectedConcurrencyVersion: versionVal ? parseInt(versionVal, 10) : null
+                        })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถลบผู้ใช้งานได้', 'danger');
+                        return;
+                    }
+                    deleteModalInstance.hide();
+                    showAlert(data.message || 'ลบผู้ใช้งานเรียบร้อยแล้ว', 'success');
+                    await loadData();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการลบผู้ใช้งาน', 'danger');
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                userModalInstance = new bootstrap.Modal(document.getElementById('userModal'));
+                deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    state.search = e.target.value.trim();
+                    renderTable();
+                });
+
+                document.getElementById('roleFilterSelect').addEventListener('change', (e) => {
+                    state.roleFilter = e.target.value;
+                    renderTable();
+                });
+
+                document.getElementById('btnAddUser').addEventListener('click', openCreateModal);
+                document.getElementById('btnRefresh').addEventListener('click', loadData);
+                document.getElementById('btnSaveUser').addEventListener('click', saveUser);
+                document.getElementById('btnConfirmDelete').addEventListener('click', confirmDelete);
+
+                loadData();
+            });
+        })();
+    </script>
+}

@@ -5,12 +5,12 @@ namespace BCG_RPAS.Models
     public class LoginViewModel
     {
         [Required(ErrorMessage = "กรุณากรอกชื่อผู้ใช้")]
-        [Display(Name = "ชื่อผู้ใช้ (Username)")]
+        [Display(Name = "Username")]
         public string UserName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "กรุณากรอกรหัสผ่าน")]
         [DataType(DataType.Password)]
-        [Display(Name = "รหัสผ่าน (Password)")]
+        [Display(Name = "Password")]
         public string Password { get; set; } = string.Empty;
 
         [Display(Name = "จดจำการเข้าสู่ระบบ")]

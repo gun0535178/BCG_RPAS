@@ -15,10 +15,11 @@
             <div class="card-body p-4 p-md-5" style="background: linear-gradient(135deg, #0F5132 0%, #198754 100%); color: white;">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
+                        
+                        <h1 class="display-6 fw-bold mb-1">ยินดีต้อนรับ, @displayName</h1>
                         <span class="badge bg-white text-success px-3 py-2 rounded-pill fw-bold mb-2">
                             @roleName
                         </span>
-                        <h1 class="display-6 fw-bold mb-1">ยินดีต้อนรับ, @displayName</h1>
                         <p class="mb-0 opacity-75">ระบบบริหารและอนุมัติการจ่ายค่าเช่า BCG RPAS</p>
                     </div>
                 </div>
@@ -83,6 +84,20 @@
                             <p class="card-text text-muted small mb-3">ผูกสายการอนุมัติขั้นที่ 1 (ผู้จัดการ) และขั้นที่ 2 (ผู้บริหาร) ให้กับผู้ขออนุมัติ</p>
                             <a asp-controller="ApprovalAssignments" asp-action="Index" class="btn btn-outline-danger btn-sm stretched-link fw-semibold">
                                 ตั้งค่าสายอนุมัติ &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-3 h-100 p-3 position-relative">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-dark">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                                <h5 class="card-title mb-0 fw-bold">จัดการผู้ใช้งาน</h5>
+                            </div>
+                            <p class="card-text text-muted small mb-3">สร้างบัญชีผู้ใช้งานใหม่ กำหนดบทบาท แก้ไขข้อมูล หรือเปลี่ยนรหัสผ่าน</p>
+                            <a asp-controller="Users" asp-action="Index" class="btn btn-outline-dark btn-sm stretched-link fw-semibold">
+                                จัดการผู้ใช้งาน &rarr;
                             </a>
                         </div>
                     </div>

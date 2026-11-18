@@ -3,7 +3,7 @@
     int reqId = ViewBag.RequestId ?? 0;
 }
 
-<div class="container py-3" style="max-width: 900px;">
+<div class="container-fluid py-3">
     <!-- Breadcrumb & Title -->
     <div class="mb-4">
         <a asp-action="Details" asp-route-id="@reqId" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-2">
@@ -215,17 +215,43 @@
                 }
 
                 contractsList = masters.contracts || [];
-                let contractOptions = '<option value="">-- เลือกสัญญาเช่า --</option>';
+                let contractOptions = '<option value="">-- ค้นหาหรือเลือกสัญญาเช่า --</option>';
                 contractsList.forEach(c => {
                     contractOptions += `<option value="${c.id}">${c.contractNumber} (${c.vendorName || '-'})</option>`;
                 });
                 $('#contractSelect').html(contractOptions);
 
-                let ccOptions = '<option value="">-- เลือกแผนก / ฝ่าย --</option>';
+                let ccOptions = '<option value="">-- ค้นหาหรือเลือกแผนก / ฝ่าย --</option>';
                 (masters.costCenters || []).forEach(cc => {
                     ccOptions += `<option value="${cc.id}">[${cc.costCenterCode}] ${cc.name}</option>`;
                 });
                 $('#costCenterSelect').html(ccOptions);
+
+                if ($.fn.select2) {
+                    $('#contractSelect').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        placeholder: '-- พิมพ์ค้นหาเลขที่สัญญา หรือ ผู้ให้เช่า --',
+                        allowClear: true,
+                        language: {
+                            noResults: function () {
+                                return 'ไม่พบเลขที่สัญญาที่ค้นหา';
+                            }
+                        }
+                    });
+
+                    $('#costCenterSelect').select2({
+                        theme: 'bootstrap-5',
+                        width: '100%',
+                        placeholder: '-- พิมพ์ค้นหารหัส หรือ ชื่อแผนก/ฝ่าย --',
+                        allowClear: true,
+                        language: {
+                            noResults: function () {
+                                return 'ไม่พบแผนก/ฝ่ายที่ค้นหา';
+                            }
+                        }
+                    });
+                }
 
                 fillFormData(currentRequestData);
 
@@ -239,7 +265,7 @@
             function fillFormData(data) {
                 $('#concurrencyVersionInput').val(data.concurrencyVersion);
                 $('#contractSelect').val(data.contractId).trigger('change');
-                $('#costCenterSelect').val(data.costCenterId);
+                $('#costCenterSelect').val(data.costCenterId).trigger('change');
 
                 if (data.periodStartDate) {
                     const startIso = data.periodStartDate.substring(0, 10);

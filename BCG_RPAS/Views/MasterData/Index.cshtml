@@ -37,13 +37,9 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
         <div class="card-header bg-white border-bottom px-4 pt-3 pb-0">
             <ul class="nav nav-tabs border-bottom-0 flex-nowrap overflow-x-auto gap-1" id="masterTabs" role="tablist">
+                
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active fw-semibold small text-nowrap px-3 py-2" data-tab="contracts" data-bs-toggle="tab" data-bs-target="#pane-contracts" type="button" role="tab">
-                        สัญญาเช่า <span class="badge bg-secondary-subtle text-dark ms-1" id="count-contracts">0</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-semibold small text-nowrap px-3 py-2" data-tab="vendors" data-bs-toggle="tab" data-bs-target="#pane-vendors" type="button" role="tab">
+                    <button class="nav-link active fw-semibold small text-nowrap px-3 py-2" data-tab="vendors" data-bs-toggle="tab" data-bs-target="#pane-vendors" type="button" role="tab">
                         ผู้ให้เช่า <span class="badge bg-secondary-subtle text-dark ms-1" id="count-vendors">0</span>
                     </button>
                 </li>
@@ -57,6 +53,11 @@
                         ประเภทค่าเช่า <span class="badge bg-secondary-subtle text-dark ms-1" id="count-rentalTypes">0</span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link fw-semibold small text-nowrap px-3 py-2" data-tab="contracts" data-bs-toggle="tab" data-bs-target="#pane-contracts" type="button" role="tab">
+                        สัญญาเช่า <span class="badge bg-secondary-subtle text-dark ms-1" id="count-contracts">0</span>
+                    </button>
+                </li>
             </ul>
         </div>
         <div class="bg-light-subtle border-bottom px-4 py-2">
@@ -68,7 +69,7 @@
         <div class="card-body p-0">
             <div class="tab-content" id="masterTabContent">
                 <!-- 1. Contracts Tab -->
-                <div class="tab-pane fade show active" id="pane-contracts" role="tabpanel">
+                <div class="tab-pane fade" id="pane-contracts" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light text-muted small text-uppercase">
@@ -88,7 +89,7 @@
                 </div>
 
                 <!-- 2. Vendors Tab -->
-                <div class="tab-pane fade" id="pane-vendors" role="tabpanel">
+                <div class="tab-pane fade show active" id="pane-vendors" role="tabpanel">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light text-muted small text-uppercase">
