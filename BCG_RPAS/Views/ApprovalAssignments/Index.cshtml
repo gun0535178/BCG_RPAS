@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "จัดการสายอนุมัติ (Approval Assignments)";
+    ViewData["Title"] = "จัดการสายอนุมัติ";
 }
 
 <div class="container-fluid py-3">
@@ -7,10 +7,10 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
             <div class="d-flex align-items-center gap-2">
-                <h2 class="fw-bold mb-0" style="color: #0F5132;">จัดการสายอนุมัติ (Approval Assignments)</h2>
-                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-semibold">เฉพาะผู้ดูแลระบบ (Admin Only)</span>
+                <h2 class="fw-bold mb-0" style="color: #0F5132;">จัดการสายอนุมัติ</h2>
+                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-semibold">เฉพาะผู้ดูแลระบบ</span>
             </div>
-            <p class="text-muted mb-0 mt-1">กำหนดหัวหน้าผู้อนุมัติขั้นที่ 1 (Manager) และผู้บริหารขั้นที่ 2 (Executive) สำหรับผู้ขออนุมัติแต่ละราย</p>
+            <p class="text-muted mb-0 mt-1">กำหนดหัวหน้าผู้อนุมัติขั้นที่ 1 (ผู้จัดการ) และผู้บริหารขั้นที่ 2 สำหรับผู้ขออนุมัติแต่ละราย</p>
         </div>
         <div class="d-flex gap-2 flex-shrink-0">
             <button type="button" id="btnRefresh" class="btn btn-outline-success px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 text-nowrap">
@@ -31,11 +31,11 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
         <div class="bg-light-subtle border-bottom px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
             <div style="max-width: 360px; width: 100%;">
-                <input type="text" id="searchInput" class="form-control form-control-sm bg-white" placeholder="ค้นหาชื่อผู้ขอ, Username หรือชื่อผู้อนุมัติ..." />
+                <input type="text" id="searchInput" class="form-control form-control-sm bg-white" placeholder="ค้นหาชื่อผู้ขอ, ชื่อบัญชีผู้ใช้ หรือชื่อผู้อนุมัติ..." />
             </div>
             <div class="form-check form-switch mb-0">
                 <input class="form-check-input" type="checkbox" id="onlyRequesterSwitch" checked />
-                <label class="form-check-label small fw-semibold text-secondary" for="onlyRequesterSwitch">แสดงเฉพาะบทบาท REQUESTER</label>
+                <label class="form-check-label small fw-semibold text-secondary" for="onlyRequesterSwitch">แสดงเฉพาะบทบาทผู้ขออนุมัติ</label>
             </div>
         </div>
 
@@ -44,11 +44,11 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-4" style="width: 80px;">User ID</th>
-                            <th>ผู้ขออนุมัติ (Requester)</th>
+                            <th class="ps-4" style="width: 80px;">ลำดับ</th>
+                            <th>ผู้ขออนุมัติ</th>
                             <th>บทบาท</th>
-                            <th>ขั้นที่ 1: หัวหน้าอนุมัติ (Manager)</th>
-                            <th>ขั้นที่ 2: ผู้บริหารอนุมัติ (Executive)</th>
+                            <th>ขั้นที่ 1: ผู้จัดการอนุมัติ</th>
+                            <th>ขั้นที่ 2: ผู้บริหารอนุมัติ</th>
                             <th class="text-center" style="width: 140px;">สถานะสายอนุมัติ</th>
                             <th class="text-center pe-4" style="width: 200px;">จัดการ</th>
                         </tr>
@@ -76,26 +76,26 @@
                 <input type="hidden" id="requesterIdInput" value="0" />
 
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold">ผู้ขออนุมัติ (Requester)</label>
+                    <label class="form-label small fw-semibold">ผู้ขออนุมัติ</label>
                     <input type="text" class="form-control bg-light fw-bold text-dark" id="requesterLabelInput" readonly disabled />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label small fw-semibold" for="managerSelect">
-                        ขั้นที่ 1: หัวหน้าผู้อนุมัติ (Manager) <span class="text-danger">*</span>
+                        ขั้นที่ 1: หัวหน้าผู้อนุมัติ (ผู้จัดการ) <span class="text-danger">*</span>
                     </label>
                     <select class="form-select" id="managerSelect" required>
-                        <option value="">-- เลือกผู้จัดการ (Manager) --</option>
+                        <option value="">-- เลือกผู้จัดการ --</option>
                     </select>
                     <div class="form-text small text-muted">พิจารณาอนุมัติทุกคำขอเป็นลำดับแรก</div>
                 </div>
 
                 <div class="mb-2">
                     <label class="form-label small fw-semibold" for="executiveSelect">
-                        ขั้นที่ 2: ผู้บริหารผู้อนุมัติ (Executive) <span class="text-danger">*</span>
+                        ขั้นที่ 2: ผู้บริหารผู้อนุมัติ <span class="text-danger">*</span>
                     </label>
                     <select class="form-select" id="executiveSelect" required>
-                        <option value="">-- เลือกผู้บริหาร (Executive) --</option>
+                        <option value="">-- เลือกผู้บริหาร --</option>
                     </select>
                     <div class="form-text small text-muted">พิจารณาอนุมัติขั้นที่ 2 เมื่อยอดก่อน VAT เกิน 50,000 บาท</div>
                 </div>
@@ -118,7 +118,7 @@
             </div>
             <div class="modal-body py-3">
                 <p class="mb-2">คุณต้องการยกเลิกการผูกสายอนุมัติของ <strong id="deleteRequesterLabel" class="text-dark"></strong> ใช่หรือไม่?</p>
-                <p class="small text-muted mb-0">ระบบจะทำการ Soft Delete (ปรับ <code>Active = 0</code>) ในตาราง <code>ApprovalAssignments</code></p>
+                <p class="small text-muted mb-0">ระบบจะทำการปิดการใช้งานสายอนุมัติของผู้ขอรายนี้โดยไม่ลบประวัติออกจากฐานข้อมูล</p>
                 <input type="hidden" id="deleteRequesterId" value="0" />
             </div>
             <div class="modal-footer border-top-0 pt-0">
@@ -175,7 +175,7 @@
                         item.requesterId,
                         item.userName,
                         item.displayName,
-                        item.roleCode,
+                        item.roleName,
                         item.managerDisplayName,
                         item.managerUserName,
                         item.executiveDisplayName,
@@ -214,7 +214,7 @@
                                 <div class="fw-bold text-dark">${escapeHtml(r.displayName)}</div>
                                 <div class="small text-muted">@@${escapeHtml(r.userName)}</div>
                             </td>
-                            <td><span class="badge bg-light text-dark border px-2 py-1">${escapeHtml(r.roleCode)}</span></td>
+                            <td><span class="badge bg-light text-dark border px-2 py-1">${escapeHtml(r.roleName || r.roleCode)}</span></td>
                             <td>${mgrHtml}</td>
                             <td>${execHtml}</td>
                             <td class="text-center">${statusBadge}</td>
@@ -260,14 +260,14 @@
                     document.getElementById('requesterLabelInput').value = `${item.displayName} (@@${item.userName})`;
 
                     const mgrSelect = document.getElementById('managerSelect');
-                    mgrSelect.innerHTML = '<option value="">-- เลือกผู้จัดการ (Manager) --</option>' +
+                    mgrSelect.innerHTML = '<option value="">-- เลือกผู้จัดการ --</option>' +
                         state.managers
                             .filter(m => m.id !== item.requesterId)
                             .map(m => `<option value="${m.id}">${escapeHtml(m.displayName)} (@@${escapeHtml(m.userName)})</option>`)
                             .join('');
 
                     const execSelect = document.getElementById('executiveSelect');
-                    execSelect.innerHTML = '<option value="">-- เลือกผู้บริหาร (Executive) --</option>' +
+                    execSelect.innerHTML = '<option value="">-- เลือกผู้บริหาร --</option>' +
                         state.executives
                             .filter(e => e.id !== item.requesterId)
                             .map(e => `<option value="${e.id}">${escapeHtml(e.displayName)} (@@${escapeHtml(e.userName)})</option>`)
@@ -304,7 +304,7 @@
                 const executiveApproverId = parseInt(document.getElementById('executiveSelect').value || '0', 10);
 
                 if (!requesterId || !managerApproverId || !executiveApproverId) {
-                    showAlert('กรุณาเลือกหัวหน้าผู้อนุมัติ (Manager) และผู้บริหาร (Executive) ให้ครบถ้วน', 'warning');
+                    showAlert('กรุณาเลือกหัวหน้าผู้อนุมัติ (ผู้จัดการ) และผู้บริหารให้ครบถ้วน', 'warning');
                     return;
                 }
 

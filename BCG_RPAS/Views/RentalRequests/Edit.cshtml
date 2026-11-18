@@ -6,24 +6,24 @@
 <div class="container py-3" style="max-width: 900px;">
     <!-- Breadcrumb & Title -->
     <div class="mb-4">
-        <a asp-action="Index" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-2">
+        <a asp-action="Details" asp-route-id="@reqId" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            กลับไปยังรายการคำขอ
+            กลับไปยังหน้ารายละเอียดคำขอ #@reqId
         </a>
         <div class="d-flex align-items-center gap-3">
             <h2 class="fw-bold mb-0" style="color: #0F5132;">แก้ไขคำขอค่าเช่า #@reqId</h2>
             <span id="headerStatusBadge" class="badge bg-secondary">กำลังโหลด...</span>
         </div>
-        <p class="text-muted mt-1">ปรับปรุงข้อมูลในฉบับร่าง (Working Copy) ก่อนส่งอนุมัติ</p>
+        <p class="text-muted mt-1 mb-0">ปรับปรุงข้อมูลสัญญา งวดเวลา จำนวนเงิน หรือเอกสารแนบก่อนส่งอนุมัติ</p>
     </div>
 
     <!-- Alert Notification Container -->
     <div id="formAlert" class="alert d-none rounded-3 shadow-sm mb-4" role="alert"></div>
 
-    <!-- Loading Skeleton -->
+    <!-- Loading Indicator -->
     <div id="loadingBox" class="text-center py-5">
         <div class="spinner-border text-success" role="status"></div>
         <p class="text-muted mt-2">กำลังโหลดข้อมูลคำขอ...</p>
@@ -37,32 +37,32 @@
             <div class="card-header bg-white border-bottom p-3">
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                     <span class="badge bg-success-subtle text-success rounded-circle p-2">1</span>
-                    ข้อมูลสัญญาและฝ่าย/แผนก
+                    ข้อมูลสัญญาและแผนก/ฝ่าย
                 </h5>
             </div>
             <div class="card-body p-4">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" for="contractSelect">
-                            เลขที่สัญญา (Contract) <span class="text-danger">*</span>
+                            เลขที่สัญญา <span class="text-danger">*</span>
                         </label>
                         <select class="form-select" id="contractSelect" required></select>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" for="costCenterSelect">
-                            ฝ่าย / แผนก (Cost Center) <span class="text-danger">*</span>
+                            แผนก / ฝ่าย <span class="text-danger">*</span>
                         </label>
                         <select class="form-select" id="costCenterSelect" required></select>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label text-muted small">ผู้ให้เช่า (Vendor)</label>
+                        <label class="form-label text-muted small">ผู้ให้เช่า</label>
                         <input type="text" class="form-control bg-light" id="vendorNameInput" readonly />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label text-muted small">ประเภทค่าเช่า (Rental Type)</label>
+                        <label class="form-label text-muted small">ประเภทค่าเช่า</label>
                         <input type="text" class="form-control bg-light" id="rentalTypeNameInput" readonly />
                     </div>
                 </div>
@@ -106,7 +106,7 @@
                         </label>
                         <div class="input-group">
                             <input type="number" step="0.01" min="0.01" class="form-control" id="amountInput" placeholder="0.00" required />
-                            <span class="input-group-text bg-light">THB</span>
+                            <span class="input-group-text bg-light">บาท</span>
                         </div>
                     </div>
 
@@ -124,11 +124,11 @@
                         <div class="p-3 rounded-3" style="background-color: #F8FAFC; border: 1.5px dashed #CBD5E1;">
                             <div class="row g-2 text-center text-md-start align-items-center">
                                 <div class="col-md-4">
-                                    <small class="text-muted d-block">ภาษีมูลค่าเพิ่ม (VAT Amount)</small>
+                                    <small class="text-muted d-block">ภาษีมูลค่าเพิ่ม (VAT)</small>
                                     <span class="fw-bold text-dark fs-5" id="vatAmountDisplay">0.00 ฿</span>
                                 </div>
                                 <div class="col-md-4">
-                                    <small class="text-muted d-block">ยอดรวมสุทธิ (Total Amount)</small>
+                                    <small class="text-muted d-block">ยอดรวมสุทธิ</small>
                                     <span class="fw-bold text-success fs-4" id="totalAmountDisplay">0.00 ฿</span>
                                 </div>
                                 <div class="col-md-4 text-md-end">
@@ -155,7 +155,7 @@
                         ชื่อไฟล์เอกสารแนบ <span class="text-danger">*</span>
                     </label>
                     <div class="input-group mb-2">
-                        <input type="text" id="newAttachmentInput" class="form-control" placeholder="เช่น invoice_nov_2026.pdf" />
+                        <input type="text" id="newAttachmentInput" class="form-control" placeholder="เช่น ใบแจ้งหนี้_พย_2026.pdf" />
                         <button type="button" id="btnAddAttachment" class="btn btn-outline-success px-3">
                             + เพิ่มเอกสาร
                         </button>
@@ -177,10 +177,10 @@
             </a>
             <div class="d-flex gap-2">
                 <button type="button" id="btnSaveDraft" class="btn btn-outline-success px-4 py-2 fw-semibold">
-                    <span id="btnSaveDraftText">บันทึกการแก้ไข (Save)</span>
+                    <span id="btnSaveDraftText">บันทึกการแก้ไข</span>
                 </button>
                 <button type="button" id="btnSubmitRequest" class="btn btn-success px-4 py-2 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #16A34A 0%, #0F5132 100%); border: none;">
-                    <span id="btnSubmitText">ส่งขออนุมัติ (Submit)</span>
+                    <span id="btnSubmitText">ส่งขออนุมัติ</span>
                 </button>
             </div>
         </div>
@@ -208,29 +208,25 @@
                     return;
                 }
 
-                // Check editable status (DRAFT or REVISION_REQUIRED)
                 if (currentRequestData.statusId !== 1 && currentRequestData.statusId !== 6) {
-                    showAlert('danger', 'ไม่อนุญาตให้แก้ไขคำขอในสถานะ ' + currentRequestData.statusCode);
+                    showAlert('danger', 'ไม่อนุญาตให้แก้ไขคำขอในสถานะ ' + (currentRequestData.statusName || currentRequestData.statusCode));
                     $('#loadingBox').html('<div class="text-danger py-4">คำขอนี้ไม่ได้อยู่ในสถานะที่สามารถแก้ไขได้</div>');
                     return;
                 }
 
-                // Populate Contracts
                 contractsList = masters.contracts || [];
                 let contractOptions = '<option value="">-- เลือกสัญญาเช่า --</option>';
                 contractsList.forEach(c => {
-                    contractOptions += `<option value="${c.id}">${c.contractNumber}</option>`;
+                    contractOptions += `<option value="${c.id}">${c.contractNumber} (${c.vendorName || '-'})</option>`;
                 });
                 $('#contractSelect').html(contractOptions);
 
-                // Populate Cost Centers
-                let ccOptions = '<option value="">-- เลือกฝ่าย / แผนก --</option>';
+                let ccOptions = '<option value="">-- เลือกแผนก / ฝ่าย --</option>';
                 (masters.costCenters || []).forEach(cc => {
                     ccOptions += `<option value="${cc.id}">[${cc.costCenterCode}] ${cc.name}</option>`;
                 });
                 $('#costCenterSelect').html(ccOptions);
 
-                // Fill form with current data
                 fillFormData(currentRequestData);
 
                 $('#loadingBox').addClass('d-none');
@@ -269,8 +265,8 @@
                 calculatePeriodDuration();
                 calculateFinancials();
 
-                // Status Badge in Header
-                $('#headerStatusBadge').text(data.statusCode).removeClass().addClass('badge ' + (data.statusId === 6 ? 'bg-warning text-dark' : 'bg-secondary'));
+                const statusLabel = data.statusId === 6 ? 'ส่งคืนให้แก้ไข' : 'ฉบับร่าง';
+                $('#headerStatusBadge').text(statusLabel).removeClass().addClass('badge ' + (data.statusId === 6 ? 'bg-warning text-dark' : 'bg-secondary'));
             }
 
             $('#contractSelect').on('change', function () {
@@ -379,33 +375,34 @@
                 } else if (amount <= 50000) {
                     $badge.removeClass('bg-secondary-subtle text-secondary bg-info-subtle text-info')
                           .addClass('bg-success-subtle text-success')
-                          .html('✓ ยอด ≤ 50,000 ฿<br><strong>อนุมัติขั้นเดียวโดย ผู้จัดการ (Manager)</strong>');
+                          .html('✓ ยอด ≤ 50,000 ฿<br><strong>อนุมัติขั้นเดียวโดย ผู้จัดการ</strong>');
                 } else {
                     $badge.removeClass('bg-secondary-subtle text-secondary bg-success-subtle text-success')
                           .addClass('bg-info-subtle text-info-emphasis')
-                          .html('✓ ยอด &gt; 50,000 ฿<br><strong>อนุมัติ 2 ขั้น (Manager + Executive)</strong>');
+                          .html('✓ ยอด &gt; 50,000 ฿<br><strong>อนุมัติ 2 ขั้น (ผู้จัดการ + ผู้บริหาร)</strong>');
                 }
             }
 
-            // Attachments
             $('#btnAddAttachment').on('click', function () {
-                addAttachment();
+                addAttachmentFromInput();
             });
 
             $('#newAttachmentInput').on('keypress', function (e) {
                 if (e.which === 13) {
                     e.preventDefault();
-                    addAttachment();
+                    addAttachmentFromInput();
                 }
             });
 
-            function addAttachment() {
+            function addAttachmentFromInput() {
                 const val = $.trim($('#newAttachmentInput').val());
                 if (!val) return;
+
                 if (attachmentsList.includes(val)) {
                     alert('มีชื่อไฟล์นี้ในรายการแล้ว');
                     return;
                 }
+
                 attachmentsList.push(val);
                 $('#newAttachmentInput').val('');
                 renderAttachments();
@@ -422,6 +419,10 @@
                 attachmentsList.forEach((file, idx) => {
                     html += `
                         <span class="badge bg-light text-dark border px-3 py-2 rounded-pill d-inline-flex align-items-center gap-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
                             ${file}
                             <button type="button" class="btn-close btn-close-sm" style="font-size: 0.65rem;" onclick="removeAttachment(${idx})"></button>
                         </span>
@@ -435,23 +436,26 @@
                 renderAttachments();
             };
 
-            // Save Action
             $('#btnSaveDraft').on('click', function () {
-                saveData(false);
+                saveChanges(false);
             });
 
-            // Submit Action
             $('#btnSubmitRequest').on('click', function () {
                 if (!$('#contractSelect').val()) {
                     showAlert('danger', 'กรุณาเลือกเลขที่สัญญาก่อนส่งอนุมัติ');
                     return;
                 }
                 if (!$('#costCenterSelect').val()) {
-                    showAlert('danger', 'กรุณาเลือกฝ่าย/แผนกก่อนส่งอนุมัติ');
+                    showAlert('danger', 'กรุณาเลือกแผนก/ฝ่ายก่อนส่งอนุมัติ');
                     return;
                 }
                 if (!$('#periodStartDate').val() || !$('#periodEndDate').val()) {
                     showAlert('danger', 'กรุณาระบุวันเริ่มต้นและสิ้นสุดงวดค่าเช่า');
+                    return;
+                }
+                const amount = parseFloat($('#amountInput').val()) || 0;
+                if (amount <= 0) {
+                    showAlert('danger', 'ยอดเงินก่อน VAT ต้องมากกว่า 0');
                     return;
                 }
                 if (attachmentsList.length === 0) {
@@ -459,18 +463,19 @@
                     return;
                 }
 
-                if (!confirm('ยืนยันการส่งคำขอค่าเช่านี้เข้าสู่กระบวนการอนุมัติ?')) {
+                if (!confirm('ยืนยันการบันทึกและส่งคำขอค่าเช่านี้เข้าสู่กระบวนการอนุมัติ?')) {
                     return;
                 }
 
-                saveData(true);
+                saveChanges(true);
             });
 
-            function saveData(isSubmitAfter) {
-                const version = parseInt($('#concurrencyVersionInput').val());
+            function saveChanges(isSubmitAfter) {
+                const expectedVersion = parseInt($('#concurrencyVersionInput').val());
 
                 const payload = {
                     id: reqId,
+                    expectedConcurrencyVersion: expectedVersion,
                     contractId: $('#contractSelect').val() ? parseInt($('#contractSelect').val()) : null,
                     costCenterId: $('#costCenterSelect').val() ? parseInt($('#costCenterSelect').val()) : null,
                     periodStartDate: $('#periodStartDate').val() || null,
@@ -478,14 +483,16 @@
                     amount: $('#amountInput').val() ? parseFloat($('#amountInput').val()) : null,
                     vatRate: $('#vatRateInput').val() ? parseFloat($('#vatRateInput').val()) : null,
                     notes: $.trim($('#notesInput').val()) || null,
-                    expectedConcurrencyVersion: version,
                     attachmentFileNames: attachmentsList
                 };
 
-                const $btnSave = $('#btnSaveDraft');
-                const $btnSubmit = $('#btnSubmitRequest');
-                $btnSave.prop('disabled', true);
-                $btnSubmit.prop('disabled', true);
+                $('#btnSaveDraft, #btnSubmitRequest').prop('disabled', true);
+
+                if (isSubmitAfter) {
+                    $('#btnSubmitText').text('กำลังประมวลผล...');
+                } else {
+                    $('#btnSaveDraftText').text('กำลังบันทึก...');
+                }
 
                 $.ajax({
                     url: '@Url.Action("SaveDraft", "RentalRequests")',
@@ -493,11 +500,11 @@
                     contentType: 'application/json',
                     data: JSON.stringify(payload),
                     success: function (res) {
-                        const newVersion = res.concurrencyVersion;
-                        $('#concurrencyVersionInput').val(newVersion);
+                        const updatedVersion = res.concurrencyVersion;
+                        $('#concurrencyVersionInput').val(updatedVersion);
 
                         if (isSubmitAfter) {
-                            submitRequest(reqId, newVersion);
+                            submitRequest(reqId, updatedVersion);
                         } else {
                             showAlert('success', 'บันทึกการแก้ไขเรียบร้อยแล้ว');
                             setTimeout(function () {
@@ -510,15 +517,14 @@
                             ? xhr.responseJSON.detail
                             : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
                         showAlert('danger', err);
-                        $btnSave.prop('disabled', false);
-                        $btnSubmit.prop('disabled', false);
+                        resetButtons();
                     }
                 });
             }
 
-            function submitRequest(id, version) {
+            function submitRequest(requestId, version) {
                 $.ajax({
-                    url: `@Url.Action("Submit", "RentalRequests")/${id}`,
+                    url: `@Url.Action("Submit", "RentalRequests")/${requestId}`,
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -526,20 +532,25 @@
                         attachmentFileNames: attachmentsList
                     }),
                     success: function () {
-                        showAlert('success', 'ส่งคำขออนุมัติสำเร็จ! กำลังนำไปยังหน้ารายละเอียด...');
+                        showAlert('success', 'ส่งคำขออนุมัติสำเร็จ!');
                         setTimeout(function () {
-                            window.location.href = `@Url.Action("Details", "RentalRequests")/${id}`;
+                            window.location.href = `@Url.Action("Details", "RentalRequests")/${requestId}`;
                         }, 800);
                     },
                     error: function (xhr) {
                         const err = xhr.responseJSON && xhr.responseJSON.detail
                             ? xhr.responseJSON.detail
-                            : 'บันทึกสำเร็จ แต่ส่งอนุมัติไม่สำเร็จ กรุณากดส่งอนุมัติในหน้ารายละเอียด';
+                            : 'บันทึกข้อมูลแล้ว แต่ส่งอนุมัติไม่สำเร็จ';
                         showAlert('danger', err);
-                        $('#btnSaveDraft').prop('disabled', false);
-                        $('#btnSubmitRequest').prop('disabled', false);
+                        resetButtons();
                     }
                 });
+            }
+
+            function resetButtons() {
+                $('#btnSaveDraft, #btnSubmitRequest').prop('disabled', false);
+                $('#btnSaveDraftText').text('บันทึกการแก้ไข');
+                $('#btnSubmitText').text('ส่งขออนุมัติ');
             }
 
             function showAlert(type, message) {

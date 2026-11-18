@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "จัดการข้อมูลหลัก (Master Data)";
+    ViewData["Title"] = "จัดการข้อมูลหลัก";
 }
 
 <div class="container-fluid py-3">
@@ -10,7 +10,6 @@
                 <h2 class="fw-bold mb-0" style="color: #0F5132;">จัดการข้อมูลหลัก</h2>
                 <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-semibold">4 หมวดหมู่</span>
             </div>
-            @* <p class="text-muted mb-0 mt-1">บริหารจัดการข้อมูลสัญญาเช่า (Contract), ผู้ให้เช่า (Vendor), แผนก/ฝ่าย (Cost Center) และประเภทค่าเช่า (Rental Type)</p> *@
         </div>
         <div class="d-flex gap-2 flex-shrink-0">
             <button type="button" id="btnRefreshMaster" class="btn btn-outline-success px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 text-nowrap">
@@ -40,22 +39,22 @@
             <ul class="nav nav-tabs border-bottom-0 flex-nowrap overflow-x-auto gap-1" id="masterTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active fw-semibold small text-nowrap px-3 py-2" data-tab="contracts" data-bs-toggle="tab" data-bs-target="#pane-contracts" type="button" role="tab">
-                        สัญญาเช่า<span class="badge bg-secondary-subtle text-dark ms-1" id="count-contracts">0</span>
+                        สัญญาเช่า <span class="badge bg-secondary-subtle text-dark ms-1" id="count-contracts">0</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link fw-semibold small text-nowrap px-3 py-2" data-tab="vendors" data-bs-toggle="tab" data-bs-target="#pane-vendors" type="button" role="tab">
-                        ผู้ให้เช่า<span class="badge bg-secondary-subtle text-dark ms-1" id="count-vendors">0</span>
+                        ผู้ให้เช่า <span class="badge bg-secondary-subtle text-dark ms-1" id="count-vendors">0</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link fw-semibold small text-nowrap px-3 py-2" data-tab="costCenters" data-bs-toggle="tab" data-bs-target="#pane-costCenters" type="button" role="tab">
-                        แผนก/ฝ่าย<span class="badge bg-secondary-subtle text-dark ms-1" id="count-costCenters">0</span>
+                        แผนก/ฝ่าย <span class="badge bg-secondary-subtle text-dark ms-1" id="count-costCenters">0</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link fw-semibold small text-nowrap px-3 py-2" data-tab="rentalTypes" data-bs-toggle="tab" data-bs-target="#pane-rentalTypes" type="button" role="tab">
-                        ประเภทค่าเช่า<span class="badge bg-secondary-subtle text-dark ms-1" id="count-rentalTypes">0</span>
+                        ประเภทค่าเช่า <span class="badge bg-secondary-subtle text-dark ms-1" id="count-rentalTypes">0</span>
                     </button>
                 </li>
             </ul>
@@ -74,7 +73,7 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light text-muted small text-uppercase">
                                 <tr>
-                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th class="ps-4" style="width: 80px;">ลำดับ</th>
                                     <th>เลขที่สัญญา</th>
                                     <th>ผู้ให้เช่า / คู่ค้า</th>
                                     <th>ประเภทค่าเช่า</th>
@@ -94,7 +93,7 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light text-muted small text-uppercase">
                                 <tr>
-                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th class="ps-4" style="width: 80px;">ลำดับ</th>
                                     <th style="width: 220px;">รหัสคู่ค้า</th>
                                     <th>ชื่อผู้ให้เช่า / บริษัทคู่ค้า</th>
                                     <th class="text-center pe-4" style="width: 200px;">จัดการ</th>
@@ -111,7 +110,7 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light text-muted small text-uppercase">
                                 <tr>
-                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th class="ps-4" style="width: 80px;">ลำดับ</th>
                                     <th style="width: 220px;">รหัสแผนก/ฝ่าย</th>
                                     <th>ชื่อแผนก/ฝ่าย</th>
                                     <th class="text-center pe-4" style="width: 200px;">จัดการ</th>
@@ -128,9 +127,9 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light text-muted small text-uppercase">
                                 <tr>
-                                    <th class="ps-4" style="width: 80px;">ID</th>
-                                    <th style="width: 220px;">รหัสประเภทการเช่า</th>
-                                    <th>ชื่อประเภทการเช่า</th>
+                                    <th class="ps-4" style="width: 80px;">ลำดับ</th>
+                                    <th style="width: 220px;">รหัสประเภทค่าเช่า</th>
+                                    <th>ชื่อประเภทค่าเช่า</th>
                                     <th class="text-center pe-4" style="width: 200px;">จัดการ</th>
                                 </tr>
                             </thead>
@@ -156,20 +155,20 @@
                 <input type="hidden" id="contractVersion" value="" />
 
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold" for="contractNumberInput">เลขที่สัญญา (Contract Number)</label>
+                    <label class="form-label small fw-semibold" for="contractNumberInput">เลขที่สัญญา</label>
                     <input type="text" class="form-control bg-light fw-bold text-success" id="contractNumberInput" readonly disabled />
-                    <div class="form-text small text-muted">ระบบสร้างเลขที่สัญญาให้อัตโนมัติ (<code>RENT-YYYY-NNN</code>)</div>
+                    <div class="form-text small text-muted">ระบบสร้างเลขที่สัญญาให้อัตโนมัติ</div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold" for="contractVendorSelect">ผู้ให้เช่า / คู่ค้า (Vendor) <span class="text-danger">*</span></label>
+                    <label class="form-label small fw-semibold" for="contractVendorSelect">ผู้ให้เช่า / คู่ค้า <span class="text-danger">*</span></label>
                     <select class="form-select" id="contractVendorSelect" required>
                         <option value="">-- เลือกผู้ให้เช่า --</option>
                     </select>
                 </div>
 
                 <div class="mb-2">
-                    <label class="form-label small fw-semibold" for="contractRentalTypeSelect">ประเภทค่าเช่า (Rental Type) <span class="text-danger">*</span></label>
+                    <label class="form-label small fw-semibold" for="contractRentalTypeSelect">ประเภทค่าเช่า <span class="text-danger">*</span></label>
                     <select class="form-select" id="contractRentalTypeSelect" required>
                         <option value="">-- เลือกประเภทค่าเช่า --</option>
                     </select>
@@ -183,7 +182,7 @@
     </div>
 </div>
 
-<!-- Modal 2: Generic Code + Name Master Modal (Vendor, CostCenter, RentalType) -->
+<!-- Modal 2: Generic Code + Name Master Modal -->
 <div class="modal fade" id="genericMasterModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
@@ -197,12 +196,12 @@
                 <input type="hidden" id="genericVersion" value="" />
 
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold" id="genericCodeLabel" for="genericCodeInput">รหัส (Code) <span class="text-danger">*</span></label>
+                    <label class="form-label small fw-semibold" id="genericCodeLabel" for="genericCodeInput">รหัส <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="genericCodeInput" maxlength="100" required />
                 </div>
 
                 <div class="mb-2">
-                    <label class="form-label small fw-semibold" id="genericNameLabel" for="genericNameInput">ชื่อรายการ (Name) <span class="text-danger">*</span></label>
+                    <label class="form-label small fw-semibold" id="genericNameLabel" for="genericNameInput">ชื่อรายการ <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="genericNameInput" maxlength="200" required />
                 </div>
             </div>
@@ -214,7 +213,7 @@
     </div>
 </div>
 
-<!-- Modal 3: Soft Delete Confirmation Modal (Sets Active = 0) -->
+<!-- Modal 3: Soft Delete Confirmation Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
@@ -224,7 +223,7 @@
             </div>
             <div class="modal-body py-3">
                 <p class="mb-2">คุณต้องการลบรายการ <strong id="deleteTargetLabel" class="text-dark"></strong> ออกจากระบบใช่หรือไม่?</p>
-                <p class="small text-muted mb-0">ระบบจะทำการลบแบบ Soft Delete (ปรับ <code>Active = 0</code>) โดยไม่ลบแถวข้อมูลออกจากฐานข้อมูล</p>
+                <p class="small text-muted mb-0">ระบบจะทำการปิดการใช้งานรายการนี้โดยไม่ลบประวัติออกจากฐานข้อมูล</p>
                 <input type="hidden" id="deleteMasterType" value="" />
                 <input type="hidden" id="deleteId" value="0" />
                 <input type="hidden" id="deleteVersion" value="" />
@@ -360,12 +359,12 @@
                 const vendorSelect = document.getElementById('contractVendorSelect');
                 const rentalTypeSelect = document.getElementById('contractRentalTypeSelect');
 
-                vendorSelect.innerHTML = '<option value="">-- เลือกผู้ให้เช่า (Vendor) --</option>' +
+                vendorSelect.innerHTML = '<option value="">-- เลือกผู้ให้เช่า --</option>' +
                     state.vendors
                         .map(v => `<option value="${v.id}">${escapeHtml(v.vendorCode)} - ${escapeHtml(v.name)}</option>`)
                         .join('');
 
-                rentalTypeSelect.innerHTML = '<option value="">-- เลือกประเภทค่าเช่า (Rental Type) --</option>' +
+                rentalTypeSelect.innerHTML = '<option value="">-- เลือกประเภทค่าเช่า --</option>' +
                     state.rentalTypes
                         .map(rt => `<option value="${rt.id}">${escapeHtml(rt.rentalTypeCode)} - ${escapeHtml(rt.name)}</option>`)
                         .join('');
@@ -379,7 +378,7 @@
                     const res = await fetch('/MasterData/GetAll', { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
                     if (!res.ok) {
-                        showAlert(data.detail || 'ไม่สามารถโหลดข้อมูล Master Data ได้', 'danger');
+                        showAlert(data.detail || 'ไม่สามารถโหลดข้อมูลหลักได้', 'danger');
                         return;
                     }
 

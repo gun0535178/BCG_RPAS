@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "งานรออนุมัติ (Approval Inbox)";
+    ViewData["Title"] = "งานรออนุมัติ";
 }
 
 <div class="container-fluid py-3">
@@ -7,7 +7,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
             <div class="d-flex align-items-center gap-2">
-                <h2 class="fw-bold mb-0" style="color: #0F5132;">งานรออนุมัติ (Approval Inbox)</h2>
+                <h2 class="fw-bold mb-0" style="color: #0F5132;">งานรออนุมัติ</h2>
                 <span id="inboxCountBadge" class="badge bg-success rounded-pill px-3 py-2">0 รายการ</span>
             </div>
             <p class="text-muted mb-0 mt-1">รายการคำขอค่าเช่าที่รอการพิจารณาอนุมัติจากคุณในขั้นตอนปัจจุบัน</p>
@@ -33,7 +33,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light text-muted small text-uppercase">
                     <tr>
-                        <th class="ps-4" style="width: 80px;">ID</th>
+                        <th class="ps-4" style="width: 80px;">เลขที่</th>
                         <th style="min-width: 150px;">สัญญา / ผู้ให้เช่า</th>
                         <th style="min-width: 130px;">ผู้ขออนุมัติ</th>
                         <th style="min-width: 170px;">งวดวันที่เช่า</th>
@@ -89,7 +89,7 @@
             </div>
             <div class="modal-footer border-top-0 pt-0">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="button" class="btn btn-success px-4 fw-semibold" id="btnConfirmApprove">ยืนยันอนุมัติ (Approve)</button>
+                <button type="button" class="btn btn-success px-4 fw-semibold" id="btnConfirmApprove">ยืนยันอนุมัติ</button>
             </div>
         </div>
     </div>
@@ -170,7 +170,7 @@
                     $('#inboxTableBody').html(`
                         <tr>
                             <td colspan="9" class="text-center py-5 text-muted">
-                                🎉 ไม่มีรายการคำขอค่าเช่าที่รอคุณอนุมัติในขณะนี้
+                                ไม่มีรายการคำขอค่าเช่าที่รอคุณอนุมัติในขณะนี้
                             </td>
                         </tr>
                     `);
@@ -188,8 +188,8 @@
                     const submittedStr = formatDateTime(item.submittedDate);
 
                     const stepBadge = item.stepNumber === 1
-                        ? `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">ขั้นที่ 1: ${item.approvalRoleName || 'Manager'}</span>`
-                        : `<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">ขั้นที่ 2: ${item.approvalRoleName || 'Executive'}</span>`;
+                        ? `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">ขั้นที่ 1: ${item.approvalRoleName || 'ผู้จัดการ'}</span>`
+                        : `<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">ขั้นที่ 2: ${item.approvalRoleName || 'ผู้บริหาร'}</span>`;
 
                     html += `
                         <tr>
@@ -280,7 +280,7 @@
                         alert(err);
                     },
                     complete: function () {
-                        $btn.prop('disabled', false).text('ยืนยันอนุมัติ (Approve)');
+                        $btn.prop('disabled', false).text('ยืนยันอนุมัติ');
                     }
                 });
             });
@@ -288,7 +288,7 @@
             // Open Return / Reject Modal
             $(document).on('click', '.btn-open-decision', function () {
                 const reqId = parseInt($(this).data('id'));
-                const actionType = $(this).data('action'); // 'return' or 'reject'
+                const actionType = $(this).data('action');
                 const item = inboxItems.find(x => x.requestId === reqId);
                 if (!item) return;
 
@@ -299,11 +299,11 @@
 
                 if (actionType === 'return') {
                     $('#decisionModalTitle').text(`ส่งคืนคำขอ #${reqId} ให้แก้ไข`).removeClass('text-danger').addClass('text-warning-emphasis');
-                    $('#decisionModalDesc').html(`คำขอจะถูกเปลี่ยนสถานะเป็น <span class="badge bg-warning text-dark">REVISION_REQUIRED</span> เพื่อให้ผู้ขอแก้ไขและส่งอนุมัติใหม่ตั้งแต่ต้น`);
+                    $('#decisionModalDesc').html(`คำขอจะถูกเปลี่ยนสถานะเป็น <span class="badge bg-warning text-dark">ส่งคืนให้แก้ไข</span> เพื่อให้ผู้ขอแก้ไขและส่งอนุมัติใหม่ตั้งแต่ต้น`);
                     $('#btnConfirmDecision').removeClass('btn-danger').addClass('btn-warning text-dark').text('ยืนยันส่งคืนให้แก้ไข');
                 } else {
                     $('#decisionModalTitle').text(`ปฏิเสธคำขอ #${reqId}`).removeClass('text-warning-emphasis').addClass('text-danger');
-                    $('#decisionModalDesc').html(`คำขอจะถูกเปลี่ยนสถานะเป็น <span class="badge bg-danger">REJECTED</span> และสิ้นสุดกระบวนการทันที (ไม่สามารถนำกลับมาแก้ไขได้)`);
+                    $('#decisionModalDesc').html(`คำขอจะถูกเปลี่ยนสถานะเป็น <span class="badge bg-danger">ปฏิเสธ</span> และสิ้นสุดกระบวนการทันที (ไม่สามารถนำกลับมาแก้ไขได้)`);
                     $('#btnConfirmDecision').removeClass('btn-warning text-dark').addClass('btn-danger').text('ยืนยันปฏิเสธคำขอ');
                 }
 

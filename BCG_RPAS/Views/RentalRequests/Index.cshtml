@@ -6,7 +6,7 @@
     <!-- Header Section -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h2 class="fw-bold mb-1" style="color: #0F5132;">คำขอค่าเช่า (Rental Requests)</h2>
+            <h2 class="fw-bold mb-1" style="color: #0F5132;">คำขอค่าเช่า</h2>
             <p class="text-muted mb-0">ระบบบริหารจัดการและติดตามสถานะการขออนุมัติจ่ายค่าเช่า</p>
         </div>
         <div>
@@ -32,19 +32,19 @@
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </span>
-                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="ค้นหาจากเลขที่คำขอ, เลขที่สัญญา, ผู้ให้เช่า, ฝ่าย/แผนก, หมายเหตุ..." />
+                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="ค้นหาจากเลขที่คำขอ, เลขที่สัญญา, ผู้ให้เช่า, แผนก/ฝ่าย, หมายเหตุ..." />
                     </div>
                 </div>
                 <div class="col-md-4">
                     <select id="statusFilter" class="form-select">
-                        <option value="">-- สถานะทั้งหมด (All Statuses) --</option>
-                        <option value="1">DRAFT (ฉบับร่าง)</option>
-                        <option value="2">PENDING_MANAGER (รอหัวหน้าอนุมัติ)</option>
-                        <option value="3">PENDING_EXECUTIVE (รอผู้บริหารอนุมัติ)</option>
-                        <option value="4">APPROVED (อนุมัติแล้ว)</option>
-                        <option value="5">REJECTED (ปฏิเสธ)</option>
-                        <option value="6">REVISION_REQUIRED (ส่งคืนให้แก้ไข)</option>
-                        <option value="7">CANCELLED (ยกเลิก)</option>
+                        <option value="">-- สถานะทั้งหมด --</option>
+                        <option value="1">ฉบับร่าง</option>
+                        <option value="2">รอผู้จัดการอนุมัติ</option>
+                        <option value="3">รอผู้บริหารอนุมัติ</option>
+                        <option value="4">อนุมัติแล้ว</option>
+                        <option value="5">ปฏิเสธ</option>
+                        <option value="6">ส่งคืนให้แก้ไข</option>
+                        <option value="7">ยกเลิก</option>
                     </select>
                 </div>
                 <div class="col-md-3 d-flex justify-content-md-end gap-2">
@@ -65,7 +65,7 @@
             <table class="table table-hover align-middle mb-0" id="requestsTable">
                 <thead class="table-light text-muted small text-uppercase">
                     <tr>
-                        <th class="ps-4" style="width: 80px;">ID</th>
+                        <th class="ps-4" style="width: 80px;">เลขที่</th>
                         <th style="min-width: 140px;">เลขที่สัญญา</th>
                         <th style="min-width: 180px;">งวดวันที่เช่า</th>
                         <th class="text-end" style="min-width: 130px;">ยอดรวมสุทธิ</th>
@@ -115,7 +115,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-3">
-                <p class="text-muted small mb-3">คำขอเลขที่ <strong id="cancelRequestIdText"></strong> จะถูกเปลี่ยนสถานะเป็น <span class="badge bg-danger">CANCELLED</span> และไม่สามารถนำกลับมาแก้ไขได้อีก</p>
+                <p class="text-muted small mb-3">คำขอเลขที่ <strong id="cancelRequestIdText"></strong> จะถูกเปลี่ยนสถานะเป็น <span class="badge bg-danger">ยกเลิก</span> และไม่สามารถนำกลับมาแก้ไขได้อีก</p>
                 <div class="mb-3">
                     <label class="form-label small fw-semibold" for="cancelReasonInput">เหตุผลการยกเลิก <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="cancelReasonInput" rows="3" placeholder="ระบุเหตุผลในการขอยกเลิกคำขอ..." required></textarea>
@@ -298,21 +298,21 @@
             function getStatusBadge(id, code) {
                 switch (id) {
                     case 1:
-                        return '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">DRAFT</span>';
+                        return '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">ฉบับร่าง</span>';
                     case 2:
-                        return '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">รอ ผจก. อนุมัติ</span>';
+                        return '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">รอผู้จัดการอนุมัติ</span>';
                     case 3:
-                        return '<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">รอ ผู้บริหาร อนุมัติ</span>';
+                        return '<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">รอผู้บริหารอนุมัติ</span>';
                     case 4:
-                        return '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">APPROVED</span>';
+                        return '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">อนุมัติแล้ว</span>';
                     case 5:
-                        return '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">REJECTED</span>';
+                        return '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">ปฏิเสธ</span>';
                     case 6:
                         return '<span class="badge bg-warning text-dark px-2 py-1">ส่งคืนให้แก้ไข</span>';
                     case 7:
-                        return '<span class="badge bg-light text-muted border px-2 py-1">CANCELLED</span>';
+                        return '<span class="badge bg-light text-muted border px-2 py-1">ยกเลิก</span>';
                     default:
-                        return `<span class="badge bg-light text-dark">${code || 'Unknown'}</span>`;
+                        return `<span class="badge bg-light text-dark">${code || '-'}</span>`;
                 }
             }
 

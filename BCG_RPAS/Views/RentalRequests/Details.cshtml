@@ -22,7 +22,7 @@
             <p class="text-muted small mt-1 mb-0" id="subHeaderText"></p>
         </div>
         <div id="topActionButtons" class="d-flex gap-2">
-            <!-- Dynamic Actions (Edit, Submit, Cancel) -->
+            <!-- Dynamic Actions -->
         </div>
     </div>
 
@@ -38,11 +38,11 @@
     <!-- Content Area -->
     <div id="detailContent" class="d-none">
 
-        <!-- Cancellation Notice (If Cancelled) -->
+        <!-- Cancellation Notice -->
         <div id="cancelledNoticeBox" class="alert alert-danger d-none rounded-3 mb-4">
             <h6 class="fw-bold mb-1 d-flex align-items-center gap-2">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-                คำขอนี้ถูกยกเลิกแล้ว (CANCELLED)
+                คำขอนี้ถูกยกเลิกแล้ว
             </h6>
             <p class="mb-0 small" id="cancellationReasonText"></p>
         </div>
@@ -62,7 +62,7 @@
                                     <td class="fw-bold text-dark" id="txtContractNumber">-</td>
                                 </tr>
                                 <tr>
-                                    <td class="text-muted">ผู้ให้เช่า (Vendor):</td>
+                                    <td class="text-muted">ผู้ให้เช่า:</td>
                                     <td class="fw-semibold text-dark" id="txtVendorName">-</td>
                                 </tr>
                                 <tr>
@@ -70,7 +70,7 @@
                                     <td id="txtRentalTypeName">-</td>
                                 </tr>
                                 <tr>
-                                    <td class="text-muted">ฝ่าย / แผนก:</td>
+                                    <td class="text-muted">แผนก / ฝ่าย:</td>
                                     <td id="txtCostCenter">-</td>
                                 </tr>
                                 <tr>
@@ -110,7 +110,7 @@
         <!-- 2. เอกสารแนบ -->
         <div class="card border-0 shadow-sm rounded-4 mb-4">
             <div class="card-header bg-white border-bottom p-3">
-                <h5 class="fw-bold mb-0 text-dark">เอกสารแนบ (Attachments)</h5>
+                <h5 class="fw-bold mb-0 text-dark">เอกสารแนบ</h5>
             </div>
             <div class="card-body p-4">
                 <div id="attachmentsListContainer" class="d-flex flex-wrap gap-2">
@@ -119,10 +119,10 @@
             </div>
         </div>
 
-        <!-- 3. สายการอนุมัติ (Approval Steps Timeline) -->
+        <!-- 3. สายการอนุมัติ -->
         <div class="card border-0 shadow-sm rounded-4 mb-4">
             <div class="card-header bg-white border-bottom p-3">
-                <h5 class="fw-bold mb-0 text-dark">สายการอนุมัติ (Approval Workflow)</h5>
+                <h5 class="fw-bold mb-0 text-dark">สายการอนุมัติ</h5>
             </div>
             <div class="card-body p-4">
                 <div id="stepsContainer" class="row g-3">
@@ -131,10 +131,10 @@
             </div>
         </div>
 
-        <!-- 4. ประวัติการทำรายการ (Timeline & Logs) -->
+        <!-- 4. ประวัติการทำรายการ -->
         <div class="card border-0 shadow-sm rounded-4 mb-4">
             <div class="card-header bg-white border-bottom p-3">
-                <h5 class="fw-bold mb-0 text-dark">ประวัติการดำเนินการ (Audit Timeline)</h5>
+                <h5 class="fw-bold mb-0 text-dark">ประวัติการดำเนินการ</h5>
             </div>
             <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.88rem;">
@@ -167,7 +167,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-3">
-                <p class="text-muted small mb-3">คำขอนี้จะถูกเปลี่ยนสถานะเป็น <span class="badge bg-danger">CANCELLED</span> และไม่สามารถนำกลับมาดำเนินการต่อได้</p>
+                <p class="text-muted small mb-3">คำขอนี้จะถูกเปลี่ยนสถานะเป็น <span class="badge bg-danger">ยกเลิก</span> และไม่สามารถนำกลับมาดำเนินการต่อได้</p>
                 <div class="mb-3">
                     <label class="form-label small fw-semibold" for="modalCancelReason">เหตุผลการยกเลิก <span class="text-danger">*</span></label>
                     <textarea class="form-control" id="modalCancelReason" rows="3" placeholder="ระบุเหตุผลในการขอยกเลิกคำขอ..." required></textarea>
@@ -181,7 +181,7 @@
     </div>
 </div>
 
-<!-- Modal: Approver Decision (Approve / Return / Reject) -->
+<!-- Modal: Approver Decision -->
 <div class="modal fade" id="approverDecisionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
@@ -240,12 +240,10 @@
             }
 
             function renderDetails(d) {
-                // Header & Badges
                 $('#badgeRequestStatus').html(getStatusBadge(d.statusId, d.statusCode));
                 $('#badgeSyncStatus').html(getSyncBadge(d.syncStatus));
-                $('#subHeaderText').text(`ผู้ขอ: ${d.requesterName || '-'} | สร้างเมื่อ: ${formatDateTime(d.createDate)} | Revision: #${d.currentRevision || 0}`);
+                $('#subHeaderText').text(`ผู้ขอ: ${d.requesterName || '-'} | สร้างเมื่อ: ${formatDateTime(d.createDate)} | รอบการส่ง: #${d.currentRevision || 0}`);
 
-                // Cancelled notice
                 if (d.statusId === 7) {
                     $('#cancelledNoticeBox').removeClass('d-none');
                     $('#cancellationReasonText').text(d.cancellationReason || 'ไม่มีการระบุเหตุผล');
@@ -253,7 +251,6 @@
                     $('#cancelledNoticeBox').addClass('d-none');
                 }
 
-                // Contract & Financials
                 $('#txtContractNumber').text(d.contractNumber || `สัญญา #${d.contractId}`);
                 $('#txtVendorName').text(d.vendorName || '-');
                 $('#txtRentalTypeName').text(d.rentalTypeName || '-');
@@ -270,7 +267,6 @@
                 $('#txtTotalAmount').text(formatCurrency(d.totalAmount));
                 $('#txtNotes').text(d.notes || 'ไม่มีหมายเหตุเพิ่มเติม');
 
-                // Attachments
                 const files = d.attachmentFileNames || [];
                 if (files.length === 0) {
                     $('#attachmentsListContainer').html('<span class="text-muted small">ไม่มีเอกสารแนบ</span>');
@@ -290,7 +286,6 @@
                     $('#attachmentsListContainer').html(filesHtml);
                 }
 
-                // Approval Steps
                 const steps = d.approvalSteps || [];
                 if (steps.length === 0) {
                     $('#stepsContainer').html('<div class="col-12 text-muted small">ยังไม่มีการผูกสายการอนุมัติ (จะแสดงเมื่อส่งอนุมัติ)</div>');
@@ -318,7 +313,6 @@
                     $('#stepsContainer').html(stepsHtml);
                 }
 
-                // Audit Logs
                 const logs = d.logs || [];
                 if (logs.length === 0) {
                     $('#logsTableBody').html('<tr><td colspan="4" class="text-center py-3 text-muted">ไม่มีข้อมูลประวัติ</td></tr>');
@@ -328,7 +322,7 @@
                         logsHtml += `
                             <tr>
                                 <td class="ps-3 text-muted small">${formatDateTime(l.actionDate)}</td>
-                                <td><span class="badge bg-secondary-subtle text-secondary border">${l.action}</span></td>
+                                <td><span class="badge bg-secondary-subtle text-secondary border">${getActionThaiName(l.action)}</span></td>
                                 <td class="fw-semibold text-dark">${l.actorName || '-'}</td>
                                 <td>
                                     <div>${l.details || '-'}</div>
@@ -340,7 +334,6 @@
                     $('#logsTableBody').html(logsHtml);
                 }
 
-                // Render Action Buttons
                 renderActionButtons(d);
             }
 
@@ -351,7 +344,6 @@
                 const canApproveStep = (d.statusId === 2 || d.statusId === 3) &&
                     steps.some(s => s.status === 'Pending' && s.approverId === currentUserId);
 
-                // 1. ปุ่มสำหรับเจ้าของคำขอ (Requester)
                 if (isOwner) {
                     if (d.statusId === 1 || d.statusId === 6) {
                         btns += `
@@ -373,7 +365,6 @@
                     }
                 }
 
-                // 2. ปุ่มสำหรับผู้อนุมัติในขั้นตอนปัจจุบัน (Manager / Executive)
                 if (canApproveStep) {
                     btns += `
                         <button type="button" class="btn btn-success btn-sm px-3 fw-semibold shadow-sm btn-approver-action" data-action="approve">
@@ -391,9 +382,8 @@
                 $('#topActionButtons').html(btns);
             }
 
-            // Approver Decision Modal Events
             $(document).on('click', '.btn-approver-action', function () {
-                const action = $(this).data('action'); // approve | return | reject
+                const action = $(this).data('action');
                 $('#approverActionType').val(action);
                 $('#approverReasonInput').val('');
 
@@ -404,12 +394,12 @@
                     $('#btnConfirmApproverModal').removeClass('btn-danger btn-warning text-dark').addClass('btn-success').text('ยืนยันอนุมัติ');
                 } else if (action === 'return') {
                     $('#approverModalTitle').text(`ส่งคืนคำขอ #${reqId} ให้แก้ไข`).removeClass('text-danger text-success').addClass('text-warning-emphasis');
-                    $('#approverModalDesc').text('คำขอจะถูกส่งกลับไปยังผู้ขอในสถานะ REVISION_REQUIRED เพื่อแก้ไขและส่งอนุมัติใหม่ตั้งแต่ต้น');
+                    $('#approverModalDesc').text('คำขอจะถูกส่งกลับไปยังผู้ขอในสถานะ ส่งคืนให้แก้ไข เพื่อแก้ไขและส่งอนุมัติใหม่ตั้งแต่ต้น');
                     $('#approverReasonLabel').html('เหตุผลการส่งคืนให้แก้ไข <span class="text-danger">*</span>');
                     $('#btnConfirmApproverModal').removeClass('btn-danger btn-success').addClass('btn-warning text-dark').text('ยืนยันส่งคืนแก้ไข');
                 } else {
                     $('#approverModalTitle').text(`ปฏิเสธคำขอ #${reqId}`).removeClass('text-success text-warning-emphasis').addClass('text-danger');
-                    $('#approverModalDesc').text('คำขอจะถูกเปลี่ยนสถานะเป็น REJECTED และสิ้นสุดกระบวนการทันที');
+                    $('#approverModalDesc').text('คำขอจะถูกเปลี่ยนสถานะเป็น ปฏิเสธ และสิ้นสุดกระบวนการทันที');
                     $('#approverReasonLabel').html('เหตุผลการปฏิเสธ <span class="text-danger">*</span>');
                     $('#btnConfirmApproverModal').removeClass('btn-success btn-warning text-dark').addClass('btn-danger').text('ยืนยันปฏิเสธ');
                 }
@@ -461,7 +451,6 @@
                 });
             });
 
-            // Submit Button Event
             $(document).on('click', '#btnSubmitFromDetail', function () {
                 if (!confirm('ยืนยันการส่งคำขอค่าเช่านี้เข้าสู่กระบวนการอนุมัติ?')) {
                     return;
@@ -491,7 +480,6 @@
                 });
             });
 
-            // Cancel Button Event
             $(document).on('click', '#btnCancelFromDetail', function () {
                 $('#modalCancelReason').val('');
                 const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
@@ -531,17 +519,16 @@
                 });
             });
 
-            // Format Helpers
             function getStatusBadge(id, code) {
                 switch (id) {
-                    case 1: return '<span class="badge bg-secondary">DRAFT (ฉบับร่าง)</span>';
-                    case 2: return '<span class="badge bg-warning text-dark">รอผู้จัดการอนุมัติ (PENDING_MANAGER)</span>';
-                    case 3: return '<span class="badge bg-info text-dark">รอผู้บริหารอนุมัติ (PENDING_EXECUTIVE)</span>';
-                    case 4: return '<span class="badge bg-success">APPROVED (อนุมัติแล้ว)</span>';
-                    case 5: return '<span class="badge bg-danger">REJECTED (ปฏิเสธ)</span>';
-                    case 6: return '<span class="badge bg-warning text-dark border">ส่งคืนให้แก้ไข (REVISION_REQUIRED)</span>';
-                    case 7: return '<span class="badge bg-light text-muted border">CANCELLED (ยกเลิก)</span>';
-                    default: return `<span class="badge bg-light text-dark">${code}</span>`;
+                    case 1: return '<span class="badge bg-secondary">ฉบับร่าง</span>';
+                    case 2: return '<span class="badge bg-warning text-dark">รอผู้จัดการอนุมัติ</span>';
+                    case 3: return '<span class="badge bg-info text-dark">รอผู้บริหารอนุมัติ</span>';
+                    case 4: return '<span class="badge bg-success">อนุมัติแล้ว</span>';
+                    case 5: return '<span class="badge bg-danger">ปฏิเสธ</span>';
+                    case 6: return '<span class="badge bg-warning text-dark border">ส่งคืนให้แก้ไข</span>';
+                    case 7: return '<span class="badge bg-light text-muted border">ยกเลิก</span>';
+                    default: return `<span class="badge bg-light text-dark">${code || '-'}</span>`;
                 }
             }
 
@@ -555,6 +542,25 @@
                     case 'Cancelled': return '<span class="badge bg-light text-muted border">ยกเลิก</span>';
                     case 'Superseded': return '<span class="badge bg-light text-muted">ยกเลิกตามรอบเก่า</span>';
                     default: return `<span class="badge bg-light text-dark">${status}</span>`;
+                }
+            }
+
+            function getActionThaiName(action) {
+                switch (action) {
+                    case 'Create': return 'สร้างฉบับร่าง';
+                    case 'Edit': return 'แก้ไขข้อมูล';
+                    case 'Submit': return 'ส่งขออนุมัติ';
+                    case 'Resubmit': return 'ส่งขออนุมัติใหม่';
+                    case 'Approve': return 'อนุมัติ';
+                    case 'Reject': return 'ปฏิเสธ';
+                    case 'Return': return 'ส่งคืนแก้ไข';
+                    case 'Cancel': return 'ยกเลิกคำขอ';
+                    case 'ErpQueued': return 'เข้าคิวส่ง ERP';
+                    case 'ErpAttempt': return 'ส่งข้อมูลไป ERP';
+                    case 'ErpSucceeded': return 'ส่ง ERP สำเร็จ';
+                    case 'ErpFailed': return 'ส่ง ERP ล้มเหลว';
+                    case 'ErpRetry': return 'ตั้งเวลาส่ง ERP ซ้ำ';
+                    default: return action || '-';
                 }
             }
 

@@ -12,7 +12,7 @@
             </svg>
             กลับไปยังรายการคำขอ
         </a>
-        <h2 class="fw-bold mb-1" style="color: #0F5132;">สร้างคำขอค่าเช่า (New Rental Request)</h2>
+        <h2 class="fw-bold mb-1" style="color: #0F5132;">สร้างคำขอค่าเช่าใหม่</h2>
         <p class="text-muted">กรอกรายละเอียดสัญญา ข้อมูลการเงิน และเอกสารอ้างอิงเพื่อขออนุมัติ</p>
     </div>
 
@@ -25,14 +25,14 @@
             <div class="card-header bg-white border-bottom p-3">
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                     <span class="badge bg-success-subtle text-success rounded-circle p-2">1</span>
-                    ข้อมูลสัญญาและฝ่าย/แผนก
+                    ข้อมูลสัญญาและแผนก/ฝ่าย
                 </h5>
             </div>
             <div class="card-body p-4">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" for="contractSelect">
-                            เลขที่สัญญา (Contract) <span class="text-danger">*</span>
+                            เลขที่สัญญา <span class="text-danger">*</span>
                         </label>
                         <select class="form-select" id="contractSelect" required>
                             <option value="">-- กำลังโหลดรายการสัญญา... --</option>
@@ -41,21 +41,21 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" for="costCenterSelect">
-                            ฝ่าย / แผนก (Cost Center) <span class="text-danger">*</span>
+                            แผนก / ฝ่าย <span class="text-danger">*</span>
                         </label>
                         <select class="form-select" id="costCenterSelect" required>
-                            <option value="">-- กำลังโหลดข้อมูลฝ่าย/แผนก... --</option>
+                            <option value="">-- กำลังโหลดข้อมูลแผนก/ฝ่าย... --</option>
                         </select>
                     </div>
 
                     <!-- Auto-populated from contract -->
                     <div class="col-md-6">
-                        <label class="form-label text-muted small">ผู้ให้เช่า (Vendor) <span class="badge bg-light text-secondary">ดึงจากสัญญา</span></label>
+                        <label class="form-label text-muted small">ผู้ให้เช่า <span class="badge bg-light text-secondary">ดึงจากสัญญา</span></label>
                         <input type="text" class="form-control bg-light" id="vendorNameInput" placeholder="จะแสดงอัตโนมัติเมื่อเลือกสัญญา" readonly />
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label text-muted small">ประเภทค่าเช่า (Rental Type) <span class="badge bg-light text-secondary">ดึงจากสัญญา</span></label>
+                        <label class="form-label text-muted small">ประเภทค่าเช่า <span class="badge bg-light text-secondary">ดึงจากสัญญา</span></label>
                         <input type="text" class="form-control bg-light" id="rentalTypeNameInput" placeholder="จะแสดงอัตโนมัติเมื่อเลือกสัญญา" readonly />
                     </div>
                 </div>
@@ -99,7 +99,7 @@
                         </label>
                         <div class="input-group">
                             <input type="number" step="0.01" min="0.01" class="form-control" id="amountInput" placeholder="0.00" required />
-                            <span class="input-group-text bg-light">THB</span>
+                            <span class="input-group-text bg-light">บาท</span>
                         </div>
                     </div>
 
@@ -118,11 +118,11 @@
                         <div class="p-3 rounded-3" style="background-color: #F8FAFC; border: 1.5px dashed #CBD5E1;">
                             <div class="row g-2 text-center text-md-start align-items-center">
                                 <div class="col-md-4">
-                                    <small class="text-muted d-block">ภาษีมูลค่าเพิ่ม (VAT Amount)</small>
+                                    <small class="text-muted d-block">ภาษีมูลค่าเพิ่ม (VAT)</small>
                                     <span class="fw-bold text-dark fs-5" id="vatAmountDisplay">0.00 ฿</span>
                                 </div>
                                 <div class="col-md-4">
-                                    <small class="text-muted d-block">ยอดรวมสุทธิ (Total Amount)</small>
+                                    <small class="text-muted d-block">ยอดรวมสุทธิ</small>
                                     <span class="fw-bold text-success fs-4" id="totalAmountDisplay">0.00 ฿</span>
                                 </div>
                                 <div class="col-md-4 text-md-end">
@@ -148,12 +148,12 @@
             <div class="card-body p-4">
                 <div class="mb-4">
                     <label class="form-label fw-semibold">
-                        ชื่อไฟล์เอกสารแนบ (Attachment File Names) <span class="text-danger">*</span>
+                        ชื่อไฟล์เอกสารแนบ <span class="text-danger">*</span>
                     </label>
                     <p class="text-muted small mb-2">ระบุชื่อไฟล์เอกสาร เช่น ใบแจ้งหนี้ สำเนาสัญญา (อย่างน้อย 1 รายการเมื่อส่งอนุมัติ)</p>
                     
                     <div class="input-group mb-2">
-                        <input type="text" id="newAttachmentInput" class="form-control" placeholder="เช่น invoice_nov_2026.pdf หรือ rental_agreement.pdf" />
+                        <input type="text" id="newAttachmentInput" class="form-control" placeholder="เช่น ใบแจ้งหนี้_พย_2026.pdf หรือ สัญญาเช่า.pdf" />
                         <button type="button" id="btnAddAttachment" class="btn btn-outline-success px-3">
                             + เพิ่มเอกสาร
                         </button>
@@ -166,7 +166,7 @@
                 </div>
 
                 <div>
-                    <label class="form-label fw-semibold" for="notesInput">หมายเหตุเพิ่มเติม (Notes)</label>
+                    <label class="form-label fw-semibold" for="notesInput">หมายเหตุเพิ่มเติม</label>
                     <textarea class="form-control" id="notesInput" rows="3" placeholder="ระบุรายละเอียดเพิ่มเติม หรือวัตถุประสงค์ในการขออนุมัติจ่ายค่าเช่า..."></textarea>
                 </div>
             </div>
@@ -179,10 +179,10 @@
             </a>
             <div class="d-flex gap-2">
                 <button type="button" id="btnSaveDraft" class="btn btn-outline-success px-4 py-2 fw-semibold">
-                    <span id="btnSaveDraftText">บันทึกร่าง (Save Draft)</span>
+                    <span id="btnSaveDraftText">บันทึกร่าง</span>
                 </button>
                 <button type="button" id="btnSubmitRequest" class="btn btn-success px-4 py-2 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #16A34A 0%, #0F5132 100%); border: none;">
-                    <span id="btnSubmitText">ส่งขออนุมัติ (Submit)</span>
+                    <span id="btnSubmitText">ส่งขออนุมัติ</span>
                 </button>
             </div>
         </div>
@@ -202,7 +202,6 @@
                 dataType: 'json',
                 success: function (res) {
                     if (res) {
-                        // Populate Contracts
                         contractsList = res.contracts || [];
                         let contractOptions = '<option value="">-- เลือกสัญญาเช่า --</option>';
                         contractsList.forEach(c => {
@@ -210,8 +209,7 @@
                         });
                         $('#contractSelect').html(contractOptions);
 
-                        // Populate Cost Centers
-                        let ccOptions = '<option value="">-- เลือกฝ่าย / แผนก --</option>';
+                        let ccOptions = '<option value="">-- เลือกแผนก / ฝ่าย --</option>';
                         (res.costCenters || []).forEach(cc => {
                             ccOptions += `<option value="${cc.id}">[${cc.costCenterCode}] ${cc.name}</option>`;
                         });
@@ -219,7 +217,7 @@
                     }
                 },
                 error: function () {
-                    showAlert('danger', 'เกิดข้อผิดพลาดในการโหลดข้อมูลสัญญาและฝ่าย/แผนก');
+                    showAlert('danger', 'เกิดข้อผิดพลาดในการโหลดข้อมูลสัญญาและแผนก/ฝ่าย');
                 }
             });
 
@@ -283,7 +281,6 @@
                     return;
                 }
 
-                // นับรวมวันเริ่มและวันสิ้นสุด (Inclusive) โดยบวก 1 วันให้ endDate ตอนเทียบปฏิทิน
                 const endExclusive = new Date(Date.UTC(ey, em - 1, ed + 1));
                 const totalDays = Math.round((endExclusive - startDate) / (1000 * 60 * 60 * 24));
 
@@ -325,7 +322,6 @@
                 $('#vatAmountDisplay').text(vatAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ฿');
                 $('#totalAmountDisplay').text(totalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ฿');
 
-                // Update Approval Policy Indicator
                 const $badge = $('#approvalPolicyBadge');
                 if (amount <= 0) {
                     $badge.removeClass('bg-success-subtle text-success bg-info-subtle text-info')
@@ -334,11 +330,11 @@
                 } else if (amount <= 50000) {
                     $badge.removeClass('bg-secondary-subtle text-secondary bg-info-subtle text-info')
                           .addClass('bg-success-subtle text-success')
-                          .html('✓ ยอด ≤ 50,000 ฿<br><strong>อนุมัติขั้นเดียวโดย ผู้จัดการ (Manager)</strong>');
+                          .html('✓ ยอด ≤ 50,000 ฿<br><strong>อนุมัติขั้นเดียวโดย ผู้จัดการ</strong>');
                 } else {
                     $badge.removeClass('bg-secondary-subtle text-secondary bg-success-subtle text-success')
                           .addClass('bg-info-subtle text-info-emphasis')
-                          .html('✓ ยอด &gt; 50,000 ฿<br><strong>อนุมัติ 2 ขั้น (Manager + Executive)</strong>');
+                          .html('✓ ยอด &gt; 50,000 ฿<br><strong>อนุมัติ 2 ขั้น (ผู้จัดการ + ผู้บริหาร)</strong>');
                 }
             }
 
@@ -403,13 +399,12 @@
 
             // 6. Submit Action
             $('#btnSubmitRequest').on('click', function () {
-                // Client-side quick checks before submitting
                 if (!$('#contractSelect').val()) {
                     showAlert('danger', 'กรุณาเลือกเลขที่สัญญาก่อนส่งอนุมัติ');
                     return;
                 }
                 if (!$('#costCenterSelect').val()) {
-                    showAlert('danger', 'กรุณาเลือกฝ่าย/แผนกก่อนส่งอนุมัติ');
+                    showAlert('danger', 'กรุณาเลือกแผนก/ฝ่ายก่อนส่งอนุมัติ');
                     return;
                 }
                 if (!$('#periodStartDate').val() || !$('#periodEndDate').val()) {
@@ -430,7 +425,7 @@
                     return;
                 }
 
-                saveDraft(true); // Save draft first, then auto-submit!
+                saveDraft(true);
             });
 
             function saveDraft(isSubmitAfter) {
@@ -467,7 +462,6 @@
                         const version = res.concurrencyVersion;
 
                         if (isSubmitAfter) {
-                            // Proceed to Submit
                             submitRequest(newId, version);
                         } else {
                             showAlert('success', 'บันทึกฉบับร่างเรียบร้อยแล้ว');
@@ -514,8 +508,8 @@
             function resetButtons() {
                 $('#btnSaveDraft').prop('disabled', false);
                 $('#btnSubmitRequest').prop('disabled', false);
-                $('#btnSaveDraftText').text('บันทึกร่าง (Save Draft)');
-                $('#btnSubmitText').text('ส่งขออนุมัติ (Submit)');
+                $('#btnSaveDraftText').text('บันทึกร่าง');
+                $('#btnSubmitText').text('ส่งขออนุมัติ');
             }
 
             function showAlert(type, message) {
