@@ -70,7 +70,7 @@
                                     <td id="txtRentalTypeName">-</td>
                                 </tr>
                                 <tr>
-                                    <td class="text-muted">ศูนย์ต้นทุน:</td>
+                                    <td class="text-muted">ฝ่าย / แผนก:</td>
                                     <td id="txtCostCenter">-</td>
                                 </tr>
                                 <tr>
@@ -181,10 +181,35 @@
     </div>
 </div>
 
+<!-- Modal: Approver Decision (Approve / Return / Reject) -->
+<div class="modal fade" id="approverDecisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="approverModalTitle">พิจารณาคำขอ #@reqId</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="text-muted small mb-3" id="approverModalDesc"></p>
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold" id="approverReasonLabel" for="approverReasonInput">หมายเหตุ / เหตุผล</label>
+                    <textarea class="form-control" id="approverReasonInput" rows="3" placeholder="ระบุเหตุผลประกอบการพิจารณา..."></textarea>
+                </div>
+                <input type="hidden" id="approverActionType" />
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn px-4 fw-semibold" id="btnConfirmApproverModal">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         $(document).ready(function () {
             const reqId = @reqId;
+            const currentUserId = @(int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var uid) ? uid : 0);
             let currentData = null;
 
             loadDetail();
@@ -321,30 +346,120 @@
 
             function renderActionButtons(d) {
                 let btns = '';
+                const isOwner = d.requesterId === currentUserId;
+                const steps = d.approvalSteps || [];
+                const canApproveStep = (d.statusId === 2 || d.statusId === 3) &&
+                    steps.some(s => s.status === 'Pending' && s.approverId === currentUserId);
 
-                // Can edit if DRAFT (1) or REVISION_REQUIRED (6)
-                if (d.statusId === 1 || d.statusId === 6) {
-                    btns += `
-                        <a href="@Url.Action("Edit", "RentalRequests")/${d.id}" class="btn btn-outline-warning btn-sm px-3 fw-semibold">
-                            แก้ไขคำขอ
-                        </a>
-                        <button type="button" id="btnSubmitFromDetail" class="btn btn-success btn-sm px-3 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #16A34A 0%, #0F5132 100%); border: none;">
-                            ส่งขออนุมัติ
-                        </button>
-                    `;
+                // 1. ปุ่มสำหรับเจ้าของคำขอ (Requester)
+                if (isOwner) {
+                    if (d.statusId === 1 || d.statusId === 6) {
+                        btns += `
+                            <a href="@Url.Action("Edit", "RentalRequests")/${d.id}" class="btn btn-outline-warning btn-sm px-3 fw-semibold">
+                                แก้ไขคำขอ
+                            </a>
+                            <button type="button" id="btnSubmitFromDetail" class="btn btn-success btn-sm px-3 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #16A34A 0%, #0F5132 100%); border: none;">
+                                ส่งขออนุมัติ
+                            </button>
+                        `;
+                    }
+
+                    if (d.statusId === 1 || d.statusId === 2 || d.statusId === 3 || d.statusId === 6) {
+                        btns += `
+                            <button type="button" id="btnCancelFromDetail" class="btn btn-outline-danger btn-sm px-3 fw-semibold ms-1">
+                                ยกเลิกคำขอ
+                            </button>
+                        `;
+                    }
                 }
 
-                // Can cancel if before APPROVED (1, 2, 3, 6)
-                if (d.statusId === 1 || d.statusId === 2 || d.statusId === 3 || d.statusId === 6) {
+                // 2. ปุ่มสำหรับผู้อนุมัติในขั้นตอนปัจจุบัน (Manager / Executive)
+                if (canApproveStep) {
                     btns += `
-                        <button type="button" id="btnCancelFromDetail" class="btn btn-outline-danger btn-sm px-3 fw-semibold ms-1">
-                            ยกเลิกคำขอ
+                        <button type="button" class="btn btn-success btn-sm px-3 fw-semibold shadow-sm btn-approver-action" data-action="approve">
+                            ✓ อนุมัติคำขอ
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm px-3 fw-semibold btn-approver-action" data-action="return">
+                            ส่งคืนแก้ไข
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm px-3 fw-semibold btn-approver-action" data-action="reject">
+                            ปฏิเสธ
                         </button>
                     `;
                 }
 
                 $('#topActionButtons').html(btns);
             }
+
+            // Approver Decision Modal Events
+            $(document).on('click', '.btn-approver-action', function () {
+                const action = $(this).data('action'); // approve | return | reject
+                $('#approverActionType').val(action);
+                $('#approverReasonInput').val('');
+
+                if (action === 'approve') {
+                    $('#approverModalTitle').text(`ยืนยันการอนุมัติคำขอ #${reqId}`).removeClass('text-danger text-warning-emphasis').addClass('text-success');
+                    $('#approverModalDesc').text('คุณต้องการอนุมัติคำขอค่าเช่ารายการนี้ใช่หรือไม่?');
+                    $('#approverReasonLabel').html('หมายเหตุการอนุมัติ (ไม่บังคับ)');
+                    $('#btnConfirmApproverModal').removeClass('btn-danger btn-warning text-dark').addClass('btn-success').text('ยืนยันอนุมัติ');
+                } else if (action === 'return') {
+                    $('#approverModalTitle').text(`ส่งคืนคำขอ #${reqId} ให้แก้ไข`).removeClass('text-danger text-success').addClass('text-warning-emphasis');
+                    $('#approverModalDesc').text('คำขอจะถูกส่งกลับไปยังผู้ขอในสถานะ REVISION_REQUIRED เพื่อแก้ไขและส่งอนุมัติใหม่ตั้งแต่ต้น');
+                    $('#approverReasonLabel').html('เหตุผลการส่งคืนให้แก้ไข <span class="text-danger">*</span>');
+                    $('#btnConfirmApproverModal').removeClass('btn-danger btn-success').addClass('btn-warning text-dark').text('ยืนยันส่งคืนแก้ไข');
+                } else {
+                    $('#approverModalTitle').text(`ปฏิเสธคำขอ #${reqId}`).removeClass('text-success text-warning-emphasis').addClass('text-danger');
+                    $('#approverModalDesc').text('คำขอจะถูกเปลี่ยนสถานะเป็น REJECTED และสิ้นสุดกระบวนการทันที');
+                    $('#approverReasonLabel').html('เหตุผลการปฏิเสธ <span class="text-danger">*</span>');
+                    $('#btnConfirmApproverModal').removeClass('btn-success btn-warning text-dark').addClass('btn-danger').text('ยืนยันปฏิเสธ');
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('approverDecisionModal'));
+                modal.show();
+            });
+
+            $('#btnConfirmApproverModal').on('click', function () {
+                const action = $('#approverActionType').val();
+                const reason = $.trim($('#approverReasonInput').val());
+
+                if ((action === 'return' || action === 'reject') && !reason) {
+                    alert('กรุณาระบุเหตุผลประกอบการพิจารณา');
+                    return;
+                }
+
+                const urlMap = {
+                    approve: `@Url.Action("Approve", "Approvals")/${reqId}`,
+                    return: `@Url.Action("Return", "Approvals")/${reqId}`,
+                    reject: `@Url.Action("Reject", "Approvals")/${reqId}`
+                };
+
+                const $btn = $(this);
+                $btn.prop('disabled', true).text('กำลังบันทึก...');
+
+                $.ajax({
+                    url: urlMap[action],
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        expectedConcurrencyVersion: currentData.concurrencyVersion,
+                        reason: reason || null
+                    }),
+                    success: function (res) {
+                        bootstrap.Modal.getInstance(document.getElementById('approverDecisionModal')).hide();
+                        showAlert('success', res.message || 'ดำเนินการเรียบร้อยแล้ว');
+                        loadDetail();
+                    },
+                    error: function (xhr) {
+                        const err = xhr.responseJSON && xhr.responseJSON.detail
+                            ? xhr.responseJSON.detail
+                            : 'เกิดข้อผิดพลาดในการบันทึกผลการพิจารณา';
+                        alert(err);
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).text('ยืนยัน');
+                    }
+                });
+            });
 
             // Submit Button Event
             $(document).on('click', '#btnSubmitFromDetail', function () {

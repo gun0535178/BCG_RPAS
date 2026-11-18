@@ -1,0 +1,384 @@
+@{
+    ViewData["Title"] = "งานรออนุมัติ (Approval Inbox)";
+}
+
+<div class="container-fluid py-3">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold mb-0" style="color: #0F5132;">งานรออนุมัติ (Approval Inbox)</h2>
+                <span id="inboxCountBadge" class="badge bg-success rounded-pill px-3 py-2">0 รายการ</span>
+            </div>
+            <p class="text-muted mb-0 mt-1">รายการคำขอค่าเช่าที่รอการพิจารณาอนุมัติจากคุณในขั้นตอนปัจจุบัน</p>
+        </div>
+        <div>
+            <button type="button" id="btnRefreshInbox" class="btn btn-outline-success px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                รีเฟรชรายการ
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="inboxAlert" class="alert d-none rounded-3 shadow-sm mb-4" role="alert"></div>
+
+    <!-- Inbox Table Card -->
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4" style="width: 80px;">ID</th>
+                        <th style="min-width: 150px;">สัญญา / ผู้ให้เช่า</th>
+                        <th style="min-width: 130px;">ผู้ขออนุมัติ</th>
+                        <th style="min-width: 170px;">งวดวันที่เช่า</th>
+                        <th class="text-end" style="min-width: 120px;">ยอดก่อน VAT</th>
+                        <th class="text-end" style="min-width: 120px;">ยอดรวมสุทธิ</th>
+                        <th class="text-center" style="min-width: 140px;">ขั้นการอนุมัติ</th>
+                        <th style="min-width: 130px;">วันที่ส่งคำขอ</th>
+                        <th class="text-center pe-4 text-nowrap" style="min-width: 280px;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="inboxTableBody">
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+                            กำลังโหลดรายการงานรออนุมัติ...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Approve Confirmation -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-success">ยืนยันการอนุมัติคำขอ <span id="approveReqIdLabel"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <div class="p-3 rounded-3 bg-light mb-3 small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">สัญญา:</span>
+                        <strong id="approveContractLabel"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">ผู้ขออนุมัติ:</span>
+                        <strong id="approveRequesterLabel"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">ยอดรวมสุทธิ:</span>
+                        <strong class="text-success fs-6" id="approveTotalLabel"></strong>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold" for="approveReasonInput">หมายเหตุการอนุมัติ (ไม่บังคับ)</label>
+                    <textarea class="form-control" id="approveReasonInput" rows="2" placeholder="ระบุความเห็นเพิ่มเติม (ถ้ามี)..."></textarea>
+                </div>
+                <input type="hidden" id="approveReqId" />
+                <input type="hidden" id="approveReqVersion" />
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success px-4 fw-semibold" id="btnConfirmApprove">ยืนยันอนุมัติ (Approve)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Return / Reject Decision (Requires Reason) -->
+<div class="modal fade" id="decisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="decisionModalTitle">ระบุเหตุผล</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="text-muted small mb-3" id="decisionModalDesc"></p>
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold" for="decisionReasonInput">
+                        เหตุผลประกอบการพิจารณา <span class="text-danger">*</span>
+                    </label>
+                    <textarea class="form-control" id="decisionReasonInput" rows="3" placeholder="กรุณาระบุเหตุผลอย่างชัดเจน..." required></textarea>
+                </div>
+                <input type="hidden" id="decisionReqId" />
+                <input type="hidden" id="decisionReqVersion" />
+                <input type="hidden" id="decisionActionType" />
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn px-4 fw-semibold" id="btnConfirmDecision">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let inboxItems = [];
+
+            loadInbox();
+
+            $('#btnRefreshInbox').on('click', function () {
+                loadInbox();
+            });
+
+            function loadInbox() {
+                $('#inboxTableBody').html(`
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+                            กำลังโหลดรายการงานรออนุมัติ...
+                        </td>
+                    </tr>
+                `);
+
+                $.ajax({
+                    url: '@Url.Action("GetInbox", "Approvals")',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (res) {
+                        inboxItems = res || [];
+                        $('#inboxCountBadge').text(`${inboxItems.length} รายการ`);
+                        renderInbox(inboxItems);
+                    },
+                    error: function (xhr) {
+                        $('#inboxTableBody').html(`
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-danger">
+                                    ไม่สามารถโหลดรายการงานรออนุมัติได้ (${xhr.status})
+                                </td>
+                            </tr>
+                        `);
+                    }
+                });
+            }
+
+            function renderInbox(items) {
+                if (!items || items.length === 0) {
+                    $('#inboxTableBody').html(`
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                🎉 ไม่มีรายการคำขอค่าเช่าที่รอคุณอนุมัติในขณะนี้
+                            </td>
+                        </tr>
+                    `);
+                    return;
+                }
+
+                let html = '';
+                items.forEach(item => {
+                    const period = (item.periodStartDate && item.periodEndDate)
+                        ? `${formatDate(item.periodStartDate)} - ${formatDate(item.periodEndDate)}`
+                        : '-';
+
+                    const amountStr = formatCurrency(item.amount);
+                    const totalStr = formatCurrency(item.totalAmount);
+                    const submittedStr = formatDateTime(item.submittedDate);
+
+                    const stepBadge = item.stepNumber === 1
+                        ? `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">ขั้นที่ 1: ${item.approvalRoleName || 'Manager'}</span>`
+                        : `<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">ขั้นที่ 2: ${item.approvalRoleName || 'Executive'}</span>`;
+
+                    html += `
+                        <tr>
+                            <td class="ps-4 fw-bold text-muted">#${item.requestId}</td>
+                            <td>
+                                <div class="fw-bold text-dark">${item.contractNumber || '-'}</div>
+                                <div class="small text-muted">${item.vendorName || '-'}</div>
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-dark">${item.requesterName || '-'}</span>
+                                <div class="small text-muted">${item.costCenterCode || ''}</div>
+                            </td>
+                            <td class="small text-secondary text-nowrap">${period}</td>
+                            <td class="text-end text-nowrap">${amountStr}</td>
+                            <td class="text-end fw-bold text-success text-nowrap">${totalStr}</td>
+                            <td class="text-center">${stepBadge}</td>
+                            <td class="small text-muted text-nowrap">${submittedStr}</td>
+                            <td class="text-center pe-4 text-nowrap">
+                                <div class="d-inline-flex align-items-center justify-content-center gap-1 flex-nowrap">
+                                    <a href="@Url.Action("Details", "RentalRequests")/${item.requestId}" class="btn btn-outline-primary btn-sm py-1 px-2 text-nowrap">
+                                        ดูข้อมูล
+                                    </a>
+                                    <button type="button" class="btn btn-success btn-sm py-1 px-2 text-nowrap btn-open-approve"
+                                            data-id="${item.requestId}">
+                                        อนุมัติ
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning btn-sm py-1 px-2 text-nowrap btn-open-decision"
+                                            data-id="${item.requestId}" data-action="return">
+                                        ส่งคืนแก้ไข
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 text-nowrap btn-open-decision"
+                                            data-id="${item.requestId}" data-action="reject">
+                                        ปฏิเสธ
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                $('#inboxTableBody').html(html);
+            }
+
+            // Open Approve Modal
+            $(document).on('click', '.btn-open-approve', function () {
+                const reqId = parseInt($(this).data('id'));
+                const item = inboxItems.find(x => x.requestId === reqId);
+                if (!item) return;
+
+                $('#approveReqId').val(item.requestId);
+                $('#approveReqVersion').val(item.requestConcurrencyVersion);
+                $('#approveReqIdLabel').text('#' + item.requestId);
+                $('#approveContractLabel').text(`${item.contractNumber || '-'} (${item.vendorName || '-'})`);
+                $('#approveRequesterLabel').text(item.requesterName || '-');
+                $('#approveTotalLabel').text(formatCurrency(item.totalAmount));
+                $('#approveReasonInput').val('');
+
+                const modal = new bootstrap.Modal(document.getElementById('approveModal'));
+                modal.show();
+            });
+
+            // Confirm Approve
+            $('#btnConfirmApprove').on('click', function () {
+                const reqId = $('#approveReqId').val();
+                const version = parseInt($('#approveReqVersion').val());
+                const reason = $.trim($('#approveReasonInput').val()) || null;
+
+                const $btn = $(this);
+                $btn.prop('disabled', true).text('กำลังอนุมัติ...');
+
+                $.ajax({
+                    url: `@Url.Action("Approve", "Approvals")/${reqId}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        expectedConcurrencyVersion: version,
+                        reason: reason
+                    }),
+                    success: function (res) {
+                        bootstrap.Modal.getInstance(document.getElementById('approveModal')).hide();
+                        showAlert('success', res.message || `อนุมัติคำขอ #${reqId} สำเร็จ!`);
+                        loadInbox();
+                    },
+                    error: function (xhr) {
+                        const err = xhr.responseJSON && xhr.responseJSON.detail
+                            ? xhr.responseJSON.detail
+                            : 'เกิดข้อผิดพลาดในการอนุมัติคำขอ';
+                        alert(err);
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).text('ยืนยันอนุมัติ (Approve)');
+                    }
+                });
+            });
+
+            // Open Return / Reject Modal
+            $(document).on('click', '.btn-open-decision', function () {
+                const reqId = parseInt($(this).data('id'));
+                const actionType = $(this).data('action'); // 'return' or 'reject'
+                const item = inboxItems.find(x => x.requestId === reqId);
+                if (!item) return;
+
+                $('#decisionReqId').val(item.requestId);
+                $('#decisionReqVersion').val(item.requestConcurrencyVersion);
+                $('#decisionActionType').val(actionType);
+                $('#decisionReasonInput').val('');
+
+                if (actionType === 'return') {
+                    $('#decisionModalTitle').text(`ส่งคืนคำขอ #${reqId} ให้แก้ไข`).removeClass('text-danger').addClass('text-warning-emphasis');
+                    $('#decisionModalDesc').html(`คำขอจะถูกเปลี่ยนสถานะเป็น <span class="badge bg-warning text-dark">REVISION_REQUIRED</span> เพื่อให้ผู้ขอแก้ไขและส่งอนุมัติใหม่ตั้งแต่ต้น`);
+                    $('#btnConfirmDecision').removeClass('btn-danger').addClass('btn-warning text-dark').text('ยืนยันส่งคืนให้แก้ไข');
+                } else {
+                    $('#decisionModalTitle').text(`ปฏิเสธคำขอ #${reqId}`).removeClass('text-warning-emphasis').addClass('text-danger');
+                    $('#decisionModalDesc').html(`คำขอจะถูกเปลี่ยนสถานะเป็น <span class="badge bg-danger">REJECTED</span> และสิ้นสุดกระบวนการทันที (ไม่สามารถนำกลับมาแก้ไขได้)`);
+                    $('#btnConfirmDecision').removeClass('btn-warning text-dark').addClass('btn-danger').text('ยืนยันปฏิเสธคำขอ');
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('decisionModal'));
+                modal.show();
+            });
+
+            // Confirm Return / Reject
+            $('#btnConfirmDecision').on('click', function () {
+                const reqId = $('#decisionReqId').val();
+                const version = parseInt($('#decisionReqVersion').val());
+                const actionType = $('#decisionActionType').val();
+                const reason = $.trim($('#decisionReasonInput').val());
+
+                if (!reason) {
+                    alert('กรุณาระบุเหตุผลประกอบการพิจารณา');
+                    return;
+                }
+
+                const targetUrl = actionType === 'return'
+                    ? `@Url.Action("Return", "Approvals")/${reqId}`
+                    : `@Url.Action("Reject", "Approvals")/${reqId}`;
+
+                const $btn = $(this);
+                $btn.prop('disabled', true).text('กำลังบันทึก...');
+
+                $.ajax({
+                    url: targetUrl,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        expectedConcurrencyVersion: version,
+                        reason: reason
+                    }),
+                    success: function (res) {
+                        bootstrap.Modal.getInstance(document.getElementById('decisionModal')).hide();
+                        showAlert('success', res.message || 'ดำเนินการเรียบร้อยแล้ว');
+                        loadInbox();
+                    },
+                    error: function (xhr) {
+                        const err = xhr.responseJSON && xhr.responseJSON.detail
+                            ? xhr.responseJSON.detail
+                            : 'เกิดข้อผิดพลาดในการบันทึกผลการพิจารณา';
+                        alert(err);
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).text(actionType === 'return' ? 'ยืนยันส่งคืนให้แก้ไข' : 'ยืนยันปฏิเสธคำขอ');
+                    }
+                });
+            });
+
+            function formatCurrency(val) {
+                if (val == null) return '-';
+                return Number(val).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ฿';
+            }
+
+            function formatDate(str) {
+                if (!str) return '-';
+                const d = new Date(str);
+                return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+            }
+
+            function formatDateTime(str) {
+                if (!str) return '-';
+                const d = new Date(str);
+                return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+
+            function showAlert(type, message) {
+                const $box = $('#inboxAlert');
+                $box.removeClass('d-none alert-success alert-danger alert-warning')
+                    .addClass('alert-' + type)
+                    .html(message);
+                $('html, body').animate({ scrollTop: 0 }, 'fast');
+            }
+        });
+    </script>
+}

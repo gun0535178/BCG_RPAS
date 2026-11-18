@@ -51,24 +51,30 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-3 h-100 p-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100 p-3 position-relative">
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-2 mb-2 text-primary">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                            <h5 class="card-title mb-0 fw-bold">สถานะการเชื่อมต่อ ERP</h5>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                            <h5 class="card-title mb-0 fw-bold">กล่องงานรออนุมัติ</h5>
                         </div>
-                        <p class="card-text text-muted small">ตรวจสอบความถูกต้องและการส่งข้อมูลไปยังระบบ ERP บัญชี</p>
+                        <p class="card-text text-muted small mb-3">พิจารณาอนุมัติ ส่งคืนแก้ไข หรือปฏิเสธคำขอค่าเช่าที่ได้รับมอบหมาย (Approval Inbox)</p>
+                        <a asp-controller="Approvals" asp-action="Index" class="btn btn-outline-primary btn-sm stretched-link">
+                            เปิดกล่องงานรออนุมัติ &rarr;
+                        </a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-3 h-100 p-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100 p-3 position-relative">
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-2 mb-2 text-warning">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             <h5 class="card-title mb-0 fw-bold">จัดการข้อมูลหลัก (Master)</h5>
                         </div>
-                        <p class="card-text text-muted small">สัญญา (Contract), คู่ค้า (Vendor), และศูนย์ต้นทุน (Cost Center)</p>
+                        <p class="card-text text-muted small mb-3">สัญญา (Contract), คู่ค้า (Vendor), ฝ่าย/แผนก (Cost Center), ประเภทค่าเช่า, บทบาท และสถานะ</p>
+                        <a asp-controller="MasterData" asp-action="Index" class="btn btn-outline-warning text-dark btn-sm stretched-link fw-semibold">
+                            จัดการข้อมูลหลัก &rarr;
+                        </a>
                     </div>
                 </div>
             </div>

@@ -37,7 +37,7 @@
             <div class="card-header bg-white border-bottom p-3">
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                     <span class="badge bg-success-subtle text-success rounded-circle p-2">1</span>
-                    ข้อมูลสัญญาและศูนย์ต้นทุน
+                    ข้อมูลสัญญาและฝ่าย/แผนก
                 </h5>
             </div>
             <div class="card-body p-4">
@@ -51,7 +51,7 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" for="costCenterSelect">
-                            ศูนย์ต้นทุน (Cost Center) <span class="text-danger">*</span>
+                            ฝ่าย / แผนก (Cost Center) <span class="text-danger">*</span>
                         </label>
                         <select class="form-select" id="costCenterSelect" required></select>
                     </div>
@@ -217,7 +217,7 @@
                 $('#contractSelect').html(contractOptions);
 
                 // Populate Cost Centers
-                let ccOptions = '<option value="">-- เลือกศูนย์ต้นทุน --</option>';
+                let ccOptions = '<option value="">-- เลือกฝ่าย / แผนก --</option>';
                 (masters.costCenters || []).forEach(cc => {
                     ccOptions += `<option value="${cc.id}">[${cc.costCenterCode}] ${cc.name}</option>`;
                 });
@@ -360,7 +360,7 @@
                     return;
                 }
                 if (!$('#costCenterSelect').val()) {
-                    showAlert('danger', 'กรุณาเลือกศูนย์ต้นทุนก่อนส่งอนุมัติ');
+                    showAlert('danger', 'กรุณาเลือกฝ่าย/แผนกก่อนส่งอนุมัติ');
                     return;
                 }
                 if (!$('#periodStartDate').val() || !$('#periodEndDate').val()) {

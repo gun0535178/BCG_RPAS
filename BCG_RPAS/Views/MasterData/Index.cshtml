@@ -1,0 +1,659 @@
+@{
+    ViewData["Title"] = "จัดการข้อมูลหลัก (Master Data)";
+}
+
+<div class="container-fluid py-3">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold mb-0" style="color: #0F5132;">จัดการข้อมูลหลัก (Master Data Management)</h2>
+                <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-semibold">6 หมวดหมู่</span>
+            </div>
+            <p class="text-muted mb-0 mt-1">บริหารจัดการข้อมูลสัญญา (Contract), ผู้ให้เช่า (Vendor), ศูนย์ต้นทุน (Cost Center), ประเภทการเช่า, บทบาท และสถานะ</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" id="btnRefreshMaster" class="btn btn-outline-success px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                รีเฟรชข้อมูลทั้งหมด
+            </button>
+            <button type="button" id="btnAddPrimary" class="btn btn-success px-4 py-2 rounded-3 fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span id="btnAddLabel">เพิ่มสัญญาใหม่</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="masterAlert" class="alert d-none rounded-3 shadow-sm mb-4" role="alert"></div>
+
+    <!-- Navigation Tabs & Search Filter Bar -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-white border-bottom px-4 pt-3 pb-0">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <ul class="nav nav-tabs border-bottom-0 gap-1" id="masterTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-semibold px-3 py-2" data-tab="contracts" data-bs-toggle="tab" data-bs-target="#pane-contracts" type="button" role="tab">
+                            📄 สัญญาเช่า (Contracts) <span class="badge bg-secondary-subtle text-dark ms-1" id="count-contracts">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold px-3 py-2" data-tab="vendors" data-bs-toggle="tab" data-bs-target="#pane-vendors" type="button" role="tab">
+                            🏢 ผู้ให้เช่า (Vendors) <span class="badge bg-secondary-subtle text-dark ms-1" id="count-vendors">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold px-3 py-2" data-tab="costCenters" data-bs-toggle="tab" data-bs-target="#pane-costCenters" type="button" role="tab">
+                            💼 ศูนย์ต้นทุน (Cost Centers) <span class="badge bg-secondary-subtle text-dark ms-1" id="count-costCenters">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold px-3 py-2" data-tab="rentalTypes" data-bs-toggle="tab" data-bs-target="#pane-rentalTypes" type="button" role="tab">
+                            🏷️ ประเภทค่าเช่า (Rental Types) <span class="badge bg-secondary-subtle text-dark ms-1" id="count-rentalTypes">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold px-3 py-2" data-tab="roles" data-bs-toggle="tab" data-bs-target="#pane-roles" type="button" role="tab">
+                            🛡️ บทบาท (Roles) <span class="badge bg-secondary-subtle text-dark ms-1" id="count-roles">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold px-3 py-2" data-tab="statuses" data-bs-toggle="tab" data-bs-target="#pane-statuses" type="button" role="tab">
+                            📌 สถานะคำขอ (Statuses) <span class="badge bg-secondary-subtle text-dark ms-1" id="count-statuses">0</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="pb-2" style="min-width: 260px;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0 text-muted">🔍</span>
+                        <input type="text" id="masterSearchInput" class="form-control bg-light border-start-0" placeholder="ค้นหารหัส หรือ ชื่อรายการ..." />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="tab-content" id="masterTabContent">
+                <!-- 1. Contracts Tab -->
+                <div class="tab-pane fade show active" id="pane-contracts" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th>เลขที่สัญญา (Contract No.)</th>
+                                    <th>ผู้ให้เช่า / คู่ค้า (Vendor)</th>
+                                    <th>ประเภทค่าเช่า (Rental Type)</th>
+                                    <th class="text-center" style="width: 130px;">สถานะ</th>
+                                    <th class="text-center pe-4" style="width: 160px;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-contracts">
+                                <tr><td colspan="6" class="text-center py-5 text-muted">กำลังโหลดข้อมูล...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Vendors Tab -->
+                <div class="tab-pane fade" id="pane-vendors" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th style="width: 220px;">รหัสคู่ค้า (Vendor Code)</th>
+                                    <th>ชื่อผู้ให้เช่า / บริษัทคู่ค้า (Vendor Name)</th>
+                                    <th class="text-center" style="width: 130px;">สถานะ</th>
+                                    <th class="text-center pe-4" style="width: 160px;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-vendors"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. Cost Centers Tab -->
+                <div class="tab-pane fade" id="pane-costCenters" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th style="width: 220px;">รหัสศูนย์ต้นทุน (Cost Center Code)</th>
+                                    <th>ชื่อศูนย์ต้นทุน / ฝ่าย / แผนก</th>
+                                    <th class="text-center" style="width: 130px;">สถานะ</th>
+                                    <th class="text-center pe-4" style="width: 160px;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-costCenters"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 4. Rental Types Tab -->
+                <div class="tab-pane fade" id="pane-rentalTypes" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th style="width: 220px;">รหัสประเภทการเช่า (Rental Type Code)</th>
+                                    <th>ชื่อประเภทการเช่า (Rental Type Name)</th>
+                                    <th class="text-center" style="width: 130px;">สถานะ</th>
+                                    <th class="text-center pe-4" style="width: 160px;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-rentalTypes"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 5. Roles Tab -->
+                <div class="tab-pane fade" id="pane-roles" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th style="width: 220px;">รหัสบทบาท (Role Code)</th>
+                                    <th>ชื่อบทบาทผู้ใช้งาน (Role Name)</th>
+                                    <th class="text-center" style="width: 130px;">สถานะ</th>
+                                    <th class="text-center pe-4" style="width: 160px;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-roles"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 6. Statuses Tab -->
+                <div class="tab-pane fade" id="pane-statuses" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4" style="width: 80px;">ID</th>
+                                    <th style="width: 220px;">รหัสสถานะ (Status Code)</th>
+                                    <th>ชื่อสถานะคำขอ (Status Name)</th>
+                                    <th class="text-center" style="width: 130px;">สถานะ</th>
+                                    <th class="text-center pe-4" style="width: 160px;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-statuses"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 1: Contract Create/Edit Modal -->
+<div class="modal fade" id="contractModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-success" id="contractModalTitle">เพิ่มสัญญาเช่าใหม่</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <input type="hidden" id="contractId" value="0" />
+                <input type="hidden" id="contractVersion" value="" />
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="contractNumberInput">เลขที่สัญญา (Contract Number) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="contractNumberInput" placeholder="เช่น CTR-2026-0005" maxlength="100" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="contractVendorSelect">ผู้ให้เช่า / คู่ค้า (Vendor) <span class="text-danger">*</span></label>
+                    <select class="form-select" id="contractVendorSelect" required>
+                        <option value="">-- เลือกผู้ให้เช่า --</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="contractRentalTypeSelect">ประเภทค่าเช่า (Rental Type) <span class="text-danger">*</span></label>
+                    <select class="form-select" id="contractRentalTypeSelect" required>
+                        <option value="">-- เลือกประเภทค่าเช่า --</option>
+                    </select>
+                </div>
+
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="contractActiveSwitch" checked />
+                    <label class="form-check-label fw-semibold small" for="contractActiveSwitch">เปิดใช้งาน (Active)</label>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success px-4 fw-semibold" id="btnSaveContract">บันทึกข้อมูลสัญญา</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal 2: Generic Code + Name Master Modal (Vendor, CostCenter, RentalType, Role, Status) -->
+<div class="modal fade" id="genericMasterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-success" id="genericModalTitle">จัดการข้อมูลหลัก</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <input type="hidden" id="genericMasterType" value="" />
+                <input type="hidden" id="genericId" value="0" />
+                <input type="hidden" id="genericVersion" value="" />
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" id="genericCodeLabel" for="genericCodeInput">รหัส (Code) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="genericCodeInput" maxlength="100" required />
+                    <div class="form-text small text-muted d-none" id="genericCodeHelp">รหัสหลักของระบบ (System Code) ไม่สามารถเปลี่ยนได้เพื่อความปลอดภัยของ Flow</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" id="genericNameLabel" for="genericNameInput">ชื่อรายการ (Name) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="genericNameInput" maxlength="200" required />
+                </div>
+
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="genericActiveSwitch" checked />
+                    <label class="form-check-label fw-semibold small" for="genericActiveSwitch">เปิดใช้งาน (Active)</label>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success px-4 fw-semibold" id="btnSaveGeneric">บันทึกข้อมูล</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const state = {
+                activeTab: 'contracts',
+                searchQuery: '',
+                contracts: [],
+                vendors: [],
+                costCenters: [],
+                rentalTypes: [],
+                roles: [],
+                statuses: []
+            };
+
+            const tabMeta = {
+                contracts: { addLabel: 'เพิ่มสัญญาเช่าใหม่', codeLabel: 'เลขที่สัญญา', nameLabel: 'รายละเอียด' },
+                vendors: { addLabel: 'เพิ่มผู้ให้เช่า (Vendor)', title: 'ข้อมูลผู้ให้เช่า (Vendor)', codeLabel: 'รหัสคู่ค้า (Vendor Code)', nameLabel: 'ชื่อบริษัท / ผู้ให้เช่า (Vendor Name)', placeholderCode: 'เช่น VND-0010' },
+                costCenters: { addLabel: 'เพิ่มศูนย์ต้นทุน (Cost Center)', title: 'ข้อมูลศูนย์ต้นทุน (Cost Center)', codeLabel: 'รหัสศูนย์ต้นทุน (Cost Center Code)', nameLabel: 'ชื่อฝ่าย / แผนก (Cost Center Name)', placeholderCode: 'เช่น CC-1050' },
+                rentalTypes: { addLabel: 'เพิ่มประเภทค่าเช่า (Rental Type)', title: 'ข้อมูลประเภทค่าเช่า (Rental Type)', codeLabel: 'รหัสประเภทค่าเช่า (Rental Type Code)', nameLabel: 'ชื่อประเภทค่าเช่า', placeholderCode: 'เช่น WAREHOUSE' },
+                roles: { addLabel: 'เพิ่มบทบาท (Role)', title: 'ข้อมูลบทบาทผู้ใช้งาน (Role)', codeLabel: 'รหัสบทบาท (Role Code)', nameLabel: 'ชื่อบทบาทแสดงผล (Role Name)', placeholderCode: 'เช่น AUDITOR' },
+                statuses: { addLabel: 'เพิ่มสถานะคำขอ (Status)', title: 'ข้อมูลสถานะคำขอ (Request Status)', codeLabel: 'รหัสสถานะ (Status Code)', nameLabel: 'ชื่อสถานะแสดงผล (Status Name)', placeholderCode: 'เช่น ON_HOLD' }
+            };
+
+            const alertEl = document.getElementById('masterAlert');
+            const searchInput = document.getElementById('masterSearchInput');
+            const btnAddPrimary = document.getElementById('btnAddPrimary');
+            const btnAddLabel = document.getElementById('btnAddLabel');
+
+            let contractModalInstance = null;
+            let genericModalInstance = null;
+
+            function escapeHtml(val) {
+                if (val === null || val === undefined) return '';
+                return String(val)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function showAlert(message, type = 'success') {
+                alertEl.className = `alert alert-${type} alert-dismissible fade show rounded-3 shadow-sm mb-4`;
+                alertEl.innerHTML = `
+                    <div>${escapeHtml(message)}</div>
+                    <button type="button" class="btn-close" onclick="this.parentElement.classList.add('d-none')"></button>
+                `;
+            }
+
+            function renderStatusBadge(active) {
+                return active === 1
+                    ? '<span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill">เปิดใช้งาน (Active)</span>'
+                    : '<span class="badge bg-secondary-subtle text-secondary px-3 py-1 rounded-pill">ปิดใช้งาน (Inactive)</span>';
+            }
+
+            function matchesSearch(fields) {
+                if (!state.searchQuery) return true;
+                const q = state.searchQuery.toLowerCase();
+                return fields.some(f => f && String(f).toLowerCase().includes(q));
+            }
+
+            function renderAllTables() {
+                // Update badges
+                document.getElementById('count-contracts').textContent = state.contracts.length;
+                document.getElementById('count-vendors').textContent = state.vendors.length;
+                document.getElementById('count-costCenters').textContent = state.costCenters.length;
+                document.getElementById('count-rentalTypes').textContent = state.rentalTypes.length;
+                document.getElementById('count-roles').textContent = state.roles.length;
+                document.getElementById('count-statuses').textContent = state.statuses.length;
+
+                // 1. Contracts
+                const contractsBody = document.getElementById('tbody-contracts');
+                const filteredContracts = state.contracts.filter(c => matchesSearch([c.id, c.contractNumber, c.vendorCode, c.vendorName, c.rentalTypeName]));
+                if (filteredContracts.length === 0) {
+                    contractsBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">ไม่พบข้อมูลสัญญาเช่า</td></tr>`;
+                } else {
+                    contractsBody.innerHTML = filteredContracts.map(c => `
+                        <tr>
+                            <td class="ps-4 fw-semibold text-muted">#${c.id}</td>
+                            <td><span class="fw-bold text-dark">${escapeHtml(c.contractNumber)}</span></td>
+                            <td>
+                                <div class="fw-semibold">${escapeHtml(c.vendorName)}</div>
+                                <div class="small text-muted">${escapeHtml(c.vendorCode)}</div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border px-2 py-1">${escapeHtml(c.rentalTypeName)}</span></td>
+                            <td class="text-center">${renderStatusBadge(c.active)}</td>
+                            <td class="text-center pe-4">
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-3 px-3" onclick="window.MasterUI.editContract(${c.id})">
+                                    แก้ไข
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Helper for generic tables
+                function renderGenericTable(tbodyId, list, codeKey, typeKey) {
+                    const tbody = document.getElementById(tbodyId);
+                    const filtered = list.filter(item => matchesSearch([item.id, item[codeKey], item.name]));
+                    if (filtered.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">ไม่พบรายการข้อมูล</td></tr>`;
+                        return;
+                    }
+                    tbody.innerHTML = filtered.map(item => `
+                        <tr>
+                            <td class="ps-4 fw-semibold text-muted">#${item.id}</td>
+                            <td><code class="fw-bold text-success bg-success-subtle px-2 py-1 rounded">${escapeHtml(item[codeKey])}</code></td>
+                            <td class="fw-semibold text-dark">${escapeHtml(item.name)}</td>
+                            <td class="text-center">${renderStatusBadge(item.active)}</td>
+                            <td class="text-center pe-4">
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-3 px-3" onclick="window.MasterUI.editGeneric('${typeKey}', ${item.id})">
+                                    แก้ไข
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                renderGenericTable('tbody-vendors', state.vendors, 'vendorCode', 'vendors');
+                renderGenericTable('tbody-costCenters', state.costCenters, 'costCenterCode', 'costCenters');
+                renderGenericTable('tbody-rentalTypes', state.rentalTypes, 'rentalTypeCode', 'rentalTypes');
+                renderGenericTable('tbody-roles', state.roles, 'roleCode', 'roles');
+                renderGenericTable('tbody-statuses', state.statuses, 'statusCode', 'statuses');
+            }
+
+            function populateContractDropdowns(selectedVendorId = '', selectedRentalTypeId = '') {
+                const vendorSelect = document.getElementById('contractVendorSelect');
+                const rentalTypeSelect = document.getElementById('contractRentalTypeSelect');
+
+                vendorSelect.innerHTML = '<option value="">-- เลือกผู้ให้เช่า (Vendor) --</option>' +
+                    state.vendors
+                        .filter(v => v.active === 1 || String(v.id) === String(selectedVendorId))
+                        .map(v => `<option value="${v.id}">${escapeHtml(v.vendorCode)} - ${escapeHtml(v.name)}</option>`)
+                        .join('');
+
+                rentalTypeSelect.innerHTML = '<option value="">-- เลือกประเภทค่าเช่า (Rental Type) --</option>' +
+                    state.rentalTypes
+                        .filter(rt => rt.active === 1 || String(rt.id) === String(selectedRentalTypeId))
+                        .map(rt => `<option value="${rt.id}">${escapeHtml(rt.rentalTypeCode)} - ${escapeHtml(rt.name)}</option>`)
+                        .join('');
+
+                if (selectedVendorId) vendorSelect.value = String(selectedVendorId);
+                if (selectedRentalTypeId) rentalTypeSelect.value = String(selectedRentalTypeId);
+            }
+
+            async function loadAllMasterData() {
+                try {
+                    const res = await fetch('/MasterData/GetAll', { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถโหลดข้อมูล Master Data ได้', 'danger');
+                        return;
+                    }
+
+                    state.contracts = data.contracts || [];
+                    state.vendors = data.vendors || [];
+                    state.costCenters = data.costCenters || [];
+                    state.rentalTypes = data.rentalTypes || [];
+                    state.roles = data.roles || [];
+                    state.statuses = data.statuses || [];
+
+                    renderAllTables();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'danger');
+                }
+            }
+
+            function openCreateModalForCurrentTab() {
+                if (state.activeTab === 'contracts') {
+                    document.getElementById('contractModalTitle').textContent = 'เพิ่มสัญญาเช่าใหม่';
+                    document.getElementById('contractId').value = '0';
+                    document.getElementById('contractVersion').value = '';
+                    document.getElementById('contractNumberInput').value = '';
+                    document.getElementById('contractActiveSwitch').checked = true;
+                    populateContractDropdowns();
+                    contractModalInstance.show();
+                } else {
+                    const meta = tabMeta[state.activeTab];
+                    document.getElementById('genericModalTitle').textContent = meta.addLabel;
+                    document.getElementById('genericMasterType').value = state.activeTab;
+                    document.getElementById('genericId').value = '0';
+                    document.getElementById('genericVersion').value = '';
+                    document.getElementById('genericCodeLabel').innerHTML = `${meta.codeLabel} <span class="text-danger">*</span>`;
+                    document.getElementById('genericNameLabel').innerHTML = `${meta.nameLabel} <span class="text-danger">*</span>`;
+
+                    const codeInput = document.getElementById('genericCodeInput');
+                    codeInput.value = '';
+                    codeInput.placeholder = meta.placeholderCode || '';
+                    codeInput.disabled = false;
+                    document.getElementById('genericCodeHelp').classList.add('d-none');
+
+                    document.getElementById('genericNameInput').value = '';
+                    document.getElementById('genericActiveSwitch').checked = true;
+                    genericModalInstance.show();
+                }
+            }
+
+            window.MasterUI = {
+                editContract(id) {
+                    const item = state.contracts.find(c => c.id === id);
+                    if (!item) return;
+
+                    document.getElementById('contractModalTitle').textContent = `แก้ไขสัญญาเช่า #${item.id}`;
+                    document.getElementById('contractId').value = item.id;
+                    document.getElementById('contractVersion').value = item.concurrencyVersion;
+                    document.getElementById('contractNumberInput').value = item.contractNumber || '';
+                    document.getElementById('contractActiveSwitch').checked = item.active === 1;
+                    populateContractDropdowns(item.vendorId, item.rentalTypeId);
+                    contractModalInstance.show();
+                },
+
+                editGeneric(typeKey, id) {
+                    const list = state[typeKey] || [];
+                    const item = list.find(x => x.id === id);
+                    if (!item) return;
+
+                    const meta = tabMeta[typeKey];
+                    const codeFieldMap = {
+                        vendors: 'vendorCode',
+                        costCenters: 'costCenterCode',
+                        rentalTypes: 'rentalTypeCode',
+                        roles: 'roleCode',
+                        statuses: 'statusCode'
+                    };
+
+                    document.getElementById('genericModalTitle').textContent = `แก้ไข${meta.title} #${item.id}`;
+                    document.getElementById('genericMasterType').value = typeKey;
+                    document.getElementById('genericId').value = item.id;
+                    document.getElementById('genericVersion').value = item.concurrencyVersion;
+                    document.getElementById('genericCodeLabel').innerHTML = `${meta.codeLabel} <span class="text-danger">*</span>`;
+                    document.getElementById('genericNameLabel').innerHTML = `${meta.nameLabel} <span class="text-danger">*</span>`;
+
+                    const codeInput = document.getElementById('genericCodeInput');
+                    codeInput.value = item[codeFieldMap[typeKey]] || '';
+
+                    // Protect core Role (1..5) and Status (1..7) codes from breaking workflow constants
+                    const isProtectedSystemCode =
+                        (typeKey === 'roles' && item.id <= 5) ||
+                        (typeKey === 'statuses' && item.id <= 7);
+
+                    codeInput.disabled = isProtectedSystemCode;
+                    document.getElementById('genericCodeHelp').classList.toggle('d-none', !isProtectedSystemCode);
+
+                    document.getElementById('genericNameInput').value = item.name || '';
+                    document.getElementById('genericActiveSwitch').checked = item.active === 1;
+                    genericModalInstance.show();
+                }
+            };
+
+            async function saveContract() {
+                const id = parseInt(document.getElementById('contractId').value || '0', 10);
+                const versionVal = document.getElementById('contractVersion').value;
+                const contractNumber = document.getElementById('contractNumberInput').value.trim();
+                const vendorId = parseInt(document.getElementById('contractVendorSelect').value || '0', 10);
+                const rentalTypeId = parseInt(document.getElementById('contractRentalTypeSelect').value || '0', 10);
+                const active = document.getElementById('contractActiveSwitch').checked ? 1 : 0;
+
+                if (!contractNumber || !vendorId || !rentalTypeId) {
+                    showAlert('กรุณากรอกเลขที่สัญญา เลือกผู้ให้เช่า และเลือกประเภทค่าเช่าให้ครบถ้วน', 'warning');
+                    return;
+                }
+
+                const payload = {
+                    id,
+                    contractNumber,
+                    vendorId,
+                    rentalTypeId,
+                    active,
+                    expectedConcurrencyVersion: versionVal ? parseInt(versionVal, 10) : null
+                };
+
+                const btn = document.getElementById('btnSaveContract');
+                btn.disabled = true;
+                try {
+                    const res = await fetch('/MasterData/SaveContract', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถบันทึกข้อมูลสัญญาได้', 'danger');
+                        return;
+                    }
+                    contractModalInstance.hide();
+                    showAlert(data.message || 'บันทึกข้อมูลสัญญาสำเร็จ', 'success');
+                    await loadAllMasterData();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการบันทึกข้อมูลสัญญา', 'danger');
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            async function saveGeneric() {
+                const typeKey = document.getElementById('genericMasterType').value;
+                const id = parseInt(document.getElementById('genericId').value || '0', 10);
+                const versionVal = document.getElementById('genericVersion').value;
+                const code = document.getElementById('genericCodeInput').value.trim();
+                const name = document.getElementById('genericNameInput').value.trim();
+                const active = document.getElementById('genericActiveSwitch').checked ? 1 : 0;
+
+                if (!code || !name) {
+                    showAlert('กรุณากรอกรหัสและชื่อรายการให้ครบถ้วน', 'warning');
+                    return;
+                }
+
+                const endpointMap = {
+                    vendors: { url: '/MasterData/SaveVendor', codeProp: 'vendorCode' },
+                    costCenters: { url: '/MasterData/SaveCostCenter', codeProp: 'costCenterCode' },
+                    rentalTypes: { url: '/MasterData/SaveRentalType', codeProp: 'rentalTypeCode' },
+                    roles: { url: '/MasterData/SaveRole', codeProp: 'roleCode' },
+                    statuses: { url: '/MasterData/SaveStatus', codeProp: 'statusCode' }
+                };
+
+                const cfg = endpointMap[typeKey];
+                if (!cfg) return;
+
+                const payload = {
+                    id,
+                    [cfg.codeProp]: code,
+                    name,
+                    active,
+                    expectedConcurrencyVersion: versionVal ? parseInt(versionVal, 10) : null
+                };
+
+                const btn = document.getElementById('btnSaveGeneric');
+                btn.disabled = true;
+                try {
+                    const res = await fetch(cfg.url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showAlert(data.detail || 'ไม่สามารถบันทึกข้อมูลได้', 'danger');
+                        return;
+                    }
+                    genericModalInstance.hide();
+                    showAlert(data.message || 'บันทึกข้อมูลสำเร็จ', 'success');
+                    await loadAllMasterData();
+                } catch (err) {
+                    console.error(err);
+                    showAlert('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'danger');
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                contractModalInstance = new bootstrap.Modal(document.getElementById('contractModal'));
+                genericModalInstance = new bootstrap.Modal(document.getElementById('genericMasterModal'));
+
+                document.querySelectorAll('#masterTabs button[data-tab]').forEach(tabBtn => {
+                    tabBtn.addEventListener('shown.bs.tab', (e) => {
+                        state.activeTab = e.target.getAttribute('data-tab');
+                        const meta = tabMeta[state.activeTab];
+                        btnAddLabel.textContent = meta ? meta.addLabel : 'เพิ่มข้อมูลใหม่';
+                    });
+                });
+
+                searchInput.addEventListener('input', (e) => {
+                    state.searchQuery = e.target.value.trim();
+                    renderAllTables();
+                });
+
+                btnAddPrimary.addEventListener('click', openCreateModalForCurrentTab);
+                document.getElementById('btnRefreshMaster').addEventListener('click', loadAllMasterData);
+                document.getElementById('btnSaveContract').addEventListener('click', saveContract);
+                document.getElementById('btnSaveGeneric').addEventListener('click', saveGeneric);
+
+                loadAllMasterData();
+            });
+        })();
+    </script>
+}
